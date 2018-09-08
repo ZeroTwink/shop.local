@@ -1,0 +1,82 @@
+.PanelHeader-bg--brand {
+  background: #4CAF50;
+}
+
+.Tabs--android.Tabs--light .TabsItem--selected {
+  color: #4CAF50;
+}
+
+.Tabs--android.Tabs--light .TabsItem--selected::after {
+  background-color: #4CAF50;
+}
+
+.Link {
+  color: #4CAF50;
+  text-decoration: none;
+}
+
+.Search--android {
+  background: #4CAF50;
+}
+
+.Search--ios.Search--header {
+  background: #4CAF50;
+}
+
+.Search--ios.Search--header .Search__after::before {
+  background-color: #4CAF50;
+}
+
+.Search--ios.Search--header .Search__after::after {
+  background-color: #1b711b;
+}
+
+.Search--ios.Search--header .Search__control {
+  background-color: #1b711b;
+}
+.Search--ios.Search--header .Search__after-width {
+  background: #1b711b;
+  color: #1b711b;
+}
+.Search--ios.Search--header .Search__after {
+  background: #4CAF50;
+}
+
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+img.center {
+  display: block;
+  margin: 0 auto;
+}
+
+
+
+
+.product_title_img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.price_product_img_wrap {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.7);
+
+  .price_product_img {
+    padding: 6px 10px;
+    border-radius: 3px;
+    color: #ffffff;
+    background: #4CAF50;
+  }
+}
