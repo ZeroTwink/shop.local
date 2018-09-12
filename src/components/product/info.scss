@@ -1,0 +1,30 @@
+.product_title_img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.price_product_img_wrap {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.4);
+
+  .price_product_img {
+    padding: 6px 10px;
+    border-radius: 3px;
+    color: #ffffff;
+    background: #4CAF50;
+  }
+}
+
+.img_gallery {
+  position: relative;
+  height: 230px;
+  background: #DBDBDB center 35%;
+}

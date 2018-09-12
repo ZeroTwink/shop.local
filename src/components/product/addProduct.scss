@@ -1,0 +1,19 @@
+.file_img_wrapper {
+  margin: -12px 0;
+  max-width: 340px;
+
+  .img_wrap {
+    display: inline-block;
+    width: 17%;
+    height: 44px;
+    margin-left: 2.9%;
+    border: 1px solid #d0dec8;
+    background-size: cover;
+    background-position: center 35%;
+    background-color: #f4fbf0;
+
+    &:first-child {
+      margin-left: 0;
+    }
+  }
+}

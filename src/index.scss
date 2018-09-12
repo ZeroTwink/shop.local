@@ -43,6 +43,34 @@
 }
 
 
+.Input-underline::before, .Select-underline::before, .Textarea-underline::before {
+  background: #4CAF50;
+}
+.Input--ios .Input__el:focus {
+  border-color: #4CAF50;
+}
+
+
+
+.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon {
+  border-color: #4CAF50;
+}
+.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon::after {
+  background-color: #4CAF50;
+}
+.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon {
+  border-color: #4CAF50;
+}
+.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon::after {
+  background-color: #4CAF50;
+}
+
+
+.Slider__dragger::before {
+  background: #4CAF50;
+}
+
+
 img {
   max-width: 100%;
   height: auto;
@@ -51,32 +79,4 @@ img {
 img.center {
   display: block;
   margin: 0 auto;
-}
-
-
-
-
-.product_title_img {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50px;
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-.price_product_img_wrap {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  padding: 3px;
-  border-radius: 5px;
-  background-color: rgba(0, 0, 0, 0.7);
-
-  .price_product_img {
-    padding: 6px 10px;
-    border-radius: 3px;
-    color: #ffffff;
-    background: #4CAF50;
-  }
 }

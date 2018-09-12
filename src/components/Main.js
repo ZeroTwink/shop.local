@@ -2,6 +2,12 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import * as UI from '@vkontakte/vkui';
 import Icon24Search from '@vkontakte/icons/dist/24/search';
+import Icon24Filter from '@vkontakte/icons/dist/24/filter';
+import Icon24Add from '@vkontakte/icons/dist/24/add';
+
+import axios from '../utils/axios';
+
+import gdsLoad from '../actions/gdsLoad';
 
 import '@vkontakte/vkui/dist/vkui.css';
 
@@ -22,7 +28,10 @@ class Main extends Component {
     }
 
     toggleSearch() {
-        this.setState({ showSearch: !this.state.showSearch });
+        this.setState({
+            search: '',
+            showSearch: !this.state.showSearch
+        });
     }
 
     onChange(search) {
@@ -30,7 +39,19 @@ class Main extends Component {
     }
 
     componentDidMount() {
+        axios.get("/api/test.php", {
+            params: {
+                level: 0
+            }
+        }).then(res => {
+            this.props.gdsLoad(res.data.response.gds);
 
+            console.log(this.props);
+        }).catch(error => {
+            console.log(error);
+        });
+
+        console.log(window.location);
     }
 
 
@@ -62,57 +83,73 @@ class Main extends Component {
                     }
                 </UI.PanelHeader>
 
-                <UI.Group title="Рекомендованое" style={{ paddingBottom: 8 }}>
-                    <UI.HorizontalScroll>
-                        <div style={{ display: 'flex' }}>
-                            <div style={{ ...itemStyle, paddingLeft: 4 }}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>f</UI.Avatar>
-                                Элджей
+                {this.state.search.length > 2? (
+                    <UI.Group title="Результат поиска">
+                        <UI.List>
+                            <UI.Cell before={<UI.Avatar type="app" src="/images/ava.jpg" />}
+                                     asideContent={<span style={{color: UI.colors.blue}}>300 ₽</span>}
+                                     description="Компьютеры"
+                                     onClick={() => (this.props.history.push("/product/1"))}>
+                                Корпус для ПК
+                            </UI.Cell>
+                            <UI.Cell before={<UI.Avatar type="app" src="/images/ava.jpg" />}
+                                     asideContent={<span style={{color: UI.colors.blue}}>300 ₽</span>}
+                                     description="Компьютеры"
+                                     onClick={() => (this.props.history.push("/product/1"))}>
+                                Шарики крутые
+                            </UI.Cell>
+                        </UI.List>
+                    </UI.Group>
+                ) : (
+                    <div>
+                        <UI.FixedLayout vertical="bottom">
+                            <div style={{display: 'flex', background: '#4CAF50'}}>
+                                <UI.Button size="l" level="3" stretched style={{ marginRight: 8 }}><Icon24Search fill="#fff"/></UI.Button>
+                                <UI.Button size="l" stretched level="3"
+                                           onClick={() => (this.props.history.push("/add_product"))}>
+                                    <Icon24Filter fill="#fff"/>
+                                </UI.Button>
+                                <UI.Button size="l" stretched level="3"
+                                           onClick={() => (this.props.history.push("/add_product"))}>
+                                    <Icon24Add fill="#fff"/>
+                                </UI.Button>
                             </div>
-                            <div style={itemStyle}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>fs</UI.Avatar>
-                                Ольга
-                            </div>
-                            <div style={itemStyle}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>fs</UI.Avatar>
-                                Ольга
-                            </div>
-                            <div style={itemStyle}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>fs</UI.Avatar>
-                                Ольга
-                            </div>
-                            <div style={itemStyle}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>fs</UI.Avatar>
-                                Ольга
-                            </div>
-                            <div style={itemStyle}>
-                                <UI.Avatar size={64} style={{ marginBottom: 8 }}>fs</UI.Avatar>
-                                Ольга
-                            </div>
-                        </div>
-                    </UI.HorizontalScroll>
-                </UI.Group>
+                        </UI.FixedLayout>
 
-                <UI.Group title="Новые товары">
-                    <UI.List>
-                        <UI.Cell before={<UI.Avatar type="app" src="/images/ava.jpg" />}
-                                 asideContent={<span style={{color: UI.colors.blue}}>300 ₽</span>}
-                                 description="Компьютеры"
-                                 onClick={() => (this.props.history.push("/product/1"))}>
-                            Корпус для ПК
-                        </UI.Cell>
-                        <UI.Cell before={<UI.Avatar type="app" src="/images/ava.jpg" />}
-                                 asideContent={<span style={{color: UI.colors.blue}}>300 ₽</span>}
-                                 description="Компьютеры"
-                                 onClick={() => (this.props.history.push("/product/1"))}>
-                            Шарики крутые
-                        </UI.Cell>
-                    </UI.List>
-                </UI.Group>
+                        <UI.Group title="Новые товары">
+                            <UI.Gallery
+                                slideWidth="100%"
+                                style={{ height: 150 }}
+                                bullets="dark"
+                            >
+                                <div style={{ height: 150, backgroundColor: UI.colors.red }} />
+                                <div style={{ height: 150, backgroundColor: UI.colors.green }} />
+                                <div style={{ height: 150, backgroundColor: UI.colors.blue }} />
+                            </UI.Gallery>
+                        </UI.Group>
 
-                <UI.Footer>
-                    <UI.Link style={{marginRight: 30}} onClick={() => (this.props.history.push("/about"))}>О нас </UI.Link>
-                    <UI.Link>Правила</UI.Link>
+                        {this.props.vk.accessToken}
+
+                        <UI.Group title="Новые товары">
+                            <UI.List>
+                                {this.props.gds.length? this.props.gds.map((e, i) => (
+                                    <UI.Cell key={e.id} before={<UI.Avatar type="app" src="/images/ava.jpg" />}
+                                             asideContent={<span style={{color: UI.colors.blue}}>300 ₽</span>}
+                                             description="Компьютеры"
+                                             onClick={() => (this.props.history.push("/product/" + e.id))}>
+                                        {e.title}
+                                    </UI.Cell>
+                                )) : null}
+                            </UI.List>
+                        </UI.Group>
+                    </div>
+                )}
+
+                <UI.Footer style={{marginBottom: 50}}>
+                    <UI.Div>
+                        <UI.Link style={{marginRight: 30}} onClick={() => (this.props.history.push("/about"))}>О нас </UI.Link>
+                        <UI.Link>Правила</UI.Link>
+                    </UI.Div>
                 </UI.Footer>
             </UI.Panel>
         )
@@ -122,7 +159,17 @@ class Main extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
+        gds: state.gds,
+        vk: state.vk
     }
 }
 
-export default connect(mapStateToProps)(Main);
+function mapDispatchToProps(dispatch) {
+    return {
+        gdsLoad: function (name) {
+            dispatch(gdsLoad(name));
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);
