@@ -353,7 +353,7 @@ class AddProduct extends Component {
                         <UI.SelectMimicry
                             top="Выберите страну"
                             placeholder="Не выбрана"
-                            onClick={() => this.props.setActiveView("selectCountries")}
+                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCountry"})}
                         >
                             {this.getSelectedCountry()}
                         </UI.SelectMimicry>
@@ -361,7 +361,7 @@ class AddProduct extends Component {
                         <UI.SelectMimicry
                             top="Выберите город"
                             placeholder="Не выбран"
-                            onClick={() => this.props.setActiveView("selectCity")}
+                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCity"})}
                         >
                             {this.getSelectedCity()}
                         </UI.SelectMimicry>
@@ -461,8 +461,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        setActiveView: function (name) {
-            dispatch(sysActions.setActiveView(name))
+        setActive: function (name) {
+            dispatch(sysActions.setActive(name))
         },
         setValues: function (name) {
             dispatch(addProductActions.setValues(name))
