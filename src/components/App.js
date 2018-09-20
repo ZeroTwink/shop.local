@@ -53,7 +53,7 @@ class App extends Component {
         }
 
         return (
-            <UI.Root activeView={this.props['sys']['activeView']}>
+            <UI.Root activeView={this.props['sys']['active']['view']}>
                 <UI.View popout={this.props.sys.popout} id="mainView" activePanel={pageId}>
                     <Main id="main" {...this.props}/>
                     <Info id="product" {...this.props}/>
@@ -65,12 +65,9 @@ class App extends Component {
                     <Filters id="filters" {...this.props}/>
                 </UI.View>
 
-                <UI.View id="selectCountries" activePanel="countries">
-                    <SelectCountries id="countries" {...this.props} />
-                </UI.View>
-
-                <UI.View id="selectCity" activePanel="city">
-                    <SelectCity id="city" {...this.props} />
+                <UI.View id="choose" activePanel={this.props['sys']['active']['panel']}>
+                    <SelectCountries id="addProductCountry" {...this.props} />
+                    <SelectCity id="addProductCity" {...this.props} />
                 </UI.View>
             </UI.Root>
         )

@@ -41,7 +41,7 @@ class SelectCountries extends Component {
 
             if(self.props.sys.activeView === "selectCountries") {
                 self.props.history.push("/add_product");
-                self.props.setActiveView("mainView");
+                self.props.setActive({view: "mainView", panel: ""});
             }
         }
         window.removeEventListener('hashchange', popstateHandler, false);
@@ -59,7 +59,7 @@ class SelectCountries extends Component {
             city: city
         });
 
-        this.props.setActiveView("mainView");
+        this.props.setActive({view: "mainView", panel: ""});
     }
 
     getSelectedCountryId() {
@@ -80,9 +80,10 @@ class SelectCountries extends Component {
         const osname = UI.platform();
 
         return (
-            <UI.Panel id="countries">
+            <UI.Panel id="addProductCountry">
                 <UI.PanelHeader
-                    left={<UI.HeaderButton onClick={() => this.props.setActiveView("mainView")}>{osname === UI.IOS ?
+                    left={<UI.HeaderButton
+                        onClick={() => this.props.setActive({view: "mainView", panel: ""})}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
                     Выбор страны
@@ -114,8 +115,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        setActiveView: function (name) {
-            dispatch(sysActions.setActiveView(name))
+        setActive: function (name) {
+            dispatch(sysActions.setActive(name))
         },
         setValues: function (name) {
             dispatch(addProductActions.setValues(name))

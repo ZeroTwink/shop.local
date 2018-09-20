@@ -1,9 +1,9 @@
 import * as types from './types/sysActionTypes';
 
-export function setActiveView(name) {
+export function setActive(name) {
     return async (dispatch) => {
         dispatch({
-            type: types.SYS_SET_ACTIVE_VIEW,
+            type: types.SYS_SET_ACTIVE,
             payload: name,
         });
     }
