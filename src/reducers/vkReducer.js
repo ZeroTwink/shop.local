@@ -6,7 +6,17 @@ export default function vkReducer(state = {}, action) {
             return Object.assign({}, state, {accessToken: action.payload});
         case types.VK_GET_ACCESS_TOKEN_FAILED:
             return Object.assign({}, state, {accessToken: action.payload});
+        case types.VK_USER_INFO_FETCHED:
+            return Object.assign({}, state, {user: action.payload});
+        case types.VK_GET_PHONE_NUMBER:
+            return Object.assign({}, state, {phoneNumber: action.payload});
+        case types.VK_GET_EMAIL:
+            return Object.assign({}, state, {email: action.payload});
         default:
             return state;
     }
+}
+
+export function getAccessToken(state) {
+    return state.vk.accessToken;
 }

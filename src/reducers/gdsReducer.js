@@ -1,4 +1,4 @@
-export default function gdsReducer(state = [], action) {
+export default function gdsReducer(state = {}, action) {
     switch (action.type) {
         case "GDS_LOAD":
             return action.payload;

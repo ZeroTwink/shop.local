@@ -1,32 +1,24 @@
-import VKConnect from '@vkontakte/vkui-connect';
-import * as types from './types/vkActionTypes';
+import VKConnect from '../utils/VKConnect';
 
-// import VKConnect, { response as res } from '@vkontakte/vkui-connect-mock';
-//
-// res.VKWebAppGetAuthToken.data = {
-//     "type": "VKWebAppAccessTokenReceived",
-//     "data": {
-//         "access_token": "cc9521551d93ddb290b32648a37a006d87438a67f953dd37e564eb6db1ec28f79d05c16e207f00a623ef0"
-//     }
-// };
+import * as types from './types/vkActionTypes';
 
 
 
 const API_VERSION = '5.85';
 
-
 function getNewRequestId() {
-    return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).toString();
+    if(process.env.NODE_ENV === 'production') {
+        return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).toString();
+    } else {
+        return "111"
+    }
 }
-
-
 
 export function initApp() {
     return async (dispatch) => {
         VKConnect.subscribe(e => {
             let vkEvent = e.detail;
 
-            console.log(e);
             if (!vkEvent) {
                 console.error('invalid event', e);
                 return;
@@ -43,17 +35,17 @@ export function initApp() {
                     });
                     break;
 
-                case 'VKWebAppAccessTokenReceived':
+                case 'VKWebAppGetPhoneNumberResult':
                     dispatch({
-                        type: types.VK_GET_ACCESS_TOKEN_FETCHED,
-                        payload: data['access_token']
+                        type: types.VK_GET_PHONE_NUMBER,
+                        payload: data['phone_number']
                     });
                     break;
 
-                case 'VKWebAppAccessTokenFailed':
+                case 'VKWebAppGetEmailResult':
                     dispatch({
-                        type: types.VK_GET_ACCESS_TOKEN_FAILED,
-                        payload: data['error_type'] + " - " + JSON.stringify(data)
+                        type: types.VK_GET_EMAIL,
+                        payload: data['email']
                     });
                     break;
 
@@ -69,7 +61,7 @@ export function initApp() {
 
 
 
-function apiRequest(method, params = {}, accessToken = '', successCallback = undefined, errorCallback = undefined) {
+export function apiRequest(method, params = {}, accessToken = '', successCallback = undefined, errorCallback = undefined) {
     let requestId = getNewRequestId();
     if (successCallback !== undefined || errorCallback !== undefined) {
         let clb = function callback(e) {
@@ -121,7 +113,13 @@ function apiRequest(method, params = {}, accessToken = '', successCallback = und
 }
 
 
+export function fetchPhoneNumber() {
+    VKConnect.send('VKWebAppGetPhoneNumber', {});
+}
 
+export function fetchEmail() {
+    VKConnect.send('VKWebAppGetEmail', {});
+}
 
 
 export function denyNotifications() {
@@ -133,16 +131,5 @@ export function denyNotifications() {
 export function allowNotifications() {
     return async () => {
         VKConnect.send('VKWebAppAllowNotifications', {});
-    }
-}
-
-/**
- * Получения токена
- * @param scope строка с правами доступа "notify,friends"
- * @returns {function()}
- */
-export function fetchAccessToken(scope = "offline") {
-    return async () => {
-        VKConnect.send('VKWebAppGetAuthToken', {'app_id': 6689902, "scope": scope});
     }
 }

@@ -9,16 +9,23 @@ import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Phone from '@vkontakte/icons/dist/24/phone';
 import Icon24Music from '@vkontakte/icons/dist/24/music';
 import Icon24helpOutline from '@vkontakte/icons/dist/24/help_outline';
+import Icon24LinkCircle from '@vkontakte/icons/dist/24/link_circle';
+import Icon24Copy from '@vkontakte/icons/dist/24/copy';
+
+import * as vkActions from '../../actions/vk';
+import * as userActions from '../../actions/user';
+
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 import '@vkontakte/vkui/dist/vkui.css';
 import './info.scss';
+
 
 class Info extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            activePanel: "p1",
             activeTab4: "dial",
             displayAllText: false,
             tooltipPrice: false,
@@ -26,19 +33,49 @@ class Info extends Component {
 
             waitLoadProduct: true,
 
-            product: {}
+            product: {},
+
+            seller: {},
+
+            addedToFavorites: false,
+            // Идет запрос на сервер, не делать повторных действий
+            requestFavorites: false
         };
     }
 
     componentDidMount() {
         console.log(categories);
+
+        console.log(this.props.user);
+
+        let element = this.props.user.favorites.filter(id => +id === +this.props.match.params.pId);
+        if(element.length) {
+            this.setState({
+                addedToFavorites: true
+            });
+        }
+
+
+        let params = {user_ids: "30333918", fields: "photo_50,city"};
+        vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+            this.setState({
+                seller: res[0]
+            });
+        });
+
         /**
          * Поиск продукта в уже загружженных с сервера
-         * Загруженные в Main компоненте
+         * Загруженные в PageLoad компоненте
          * @type {T|*|{}}
          */
+        let productForState = null;
+        for (const key of Object.keys(this.props.gds)) {
+            productForState = this.props.gds[key].find((e) => (+e.id === +this.props.match.params.pId));
 
-        let productForState = this.props.gds.find((e) => (+e.id === +this.props.match.params.pId));
+            if(productForState !== null) {
+                break;
+            }
+        }
 
         if(productForState) {
             this.setState({
@@ -63,7 +100,7 @@ class Info extends Component {
         });
     }
 
-    strLol(text) {
+    substr(text) {
         if(this.state.displayAllText) {
             return text;
         }
@@ -87,6 +124,68 @@ class Info extends Component {
                 <UI.Link onClick={() => this.setState({displayAllText: true})}>{title}</UI.Link>
             </div>
         );
+    }
+
+    toggleFavorites() {
+        if(this.state.requestFavorites) {
+            return;
+        }
+
+        let id = this.props.match.params.pId;
+        let type = "add";
+        let indexElement = null;
+        let element = this.props.user.favorites.filter((id, i) => {
+            if(+id === +this.props.match.params.pId) {
+                indexElement = i;
+
+                return true;
+            }
+
+            return false;
+        });
+        if(element.length) {
+            id = element[0];
+            type = "remove";
+
+            let arr = [...this.props.user.favorites];
+
+            arr.splice(indexElement, 1);
+
+            this.props.userUpdate({
+                favorites: arr
+            });
+
+            this.setState({
+                addedToFavorites: false,
+                requestFavorites: true
+            });
+        } else {
+            let arr = [...this.props.user.favorites];
+            arr.push(this.props.match.params.pId);
+
+            this.props.userUpdate({
+                favorites: arr
+            });
+
+            this.setState({
+                addedToFavorites: true,
+                requestFavorites: true
+            });
+        }
+
+
+        axios.get("/api/favorites.php", {
+            params: {
+                id: id,
+                type: type
+            }
+        }).then(res => {
+            this.setState({
+                requestFavorites: false
+            });
+        }).catch(error => {
+            console.log(error);
+        });
     }
 
 
@@ -119,8 +218,6 @@ class Info extends Component {
             allImages = product["images"].split(",");
         }
 
-        console.log(allImages);
-
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader
@@ -142,6 +239,7 @@ class Info extends Component {
                                 "/sys/files/gds/" + e + ')',
                                 backgroundSize: "cover"
                             };
+
                             return (
                                 <div key={i} className="img_gallery" style={style}>
                                     <div className="price_product_img_wrap">
@@ -153,7 +251,7 @@ class Info extends Component {
                                         >
                                             <div className="price_product_img"
                                                  onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
-                                                3500 ₽
+                                                {product["price"]} ₽
                                             </div>
                                         </UI.Tooltip>
                                     </div>
@@ -169,6 +267,17 @@ class Info extends Component {
                 <UI.Group>
                     <UI.Div>
                         {product.title}
+                    </UI.Div>
+                </UI.Group>
+
+                <UI.Group>
+                    <UI.Div>
+                        <UI.Button
+                            onClick={this.toggleFavorites.bind(this)}
+                            level={this.state.addedToFavorites? "2" : "buy"}
+                            size="xl">
+                            {this.state.addedToFavorites? "Убрать из избранного" : "В избранное"}
+                        </UI.Button>
                     </UI.Div>
                 </UI.Group>
 
@@ -216,7 +325,7 @@ class Info extends Component {
                                         </UI.Tooltip>
                                     }>
                                         <UI.InfoRow title="Состояние товара">
-                                            Б/у
+                                            {product["state"]? "Новый" : "Б/у"}
                                             <div style={{width: 90}}>
                                                 <img src={"/images/stars/stars" + product["state_balls"] + ".png"}
                                                      alt="" />
@@ -231,28 +340,29 @@ class Info extends Component {
                                     </UI.Cell>
                                     <UI.Cell multiline>
                                         <UI.InfoRow title="Описание" />
-                                        {this.strLol(product.description)}
+                                        {this.substr(product.description)}
                                     </UI.Cell>
                                 </UI.List>
                             </div>
                         ) : (
                             <div>
-                                <UI.Header level={2}>Контаткты</UI.Header>
+                                <UI.Header level="2">Контаткты</UI.Header>
                                 <UI.List>
-                                    <UI.Cell before={<UI.Avatar src="../../images/ava.jpg" size={32} />}
+                                    <UI.Cell before={<UI.Avatar src={this.state.seller['photo_50']} size={40} />}
                                              description="Продавец">
-                                        Просто Человек
+                                        {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
                                     </UI.Cell>
                                     <UI.Cell before={<Icon24Phone fill="#4CAF50"/>}>
-                                        Не указан
+                                        {product['phone_number']? product['phone_number'] : "Не указан"}
                                     </UI.Cell>
                                     <UI.Cell before={<Icon24Music fill="#4CAF50"/>}>
-                                        Не указан
+                                        {product['email']? product['email'] : "Не указан"}
                                     </UI.Cell>
                                 </UI.List>
 
                                 <UI.Div>
-                                    <UI.Link style={{color: "#fff"}} href="https://vk.com/im?sel=377622871">
+                                    <UI.Link style={{color: "#fff"}}
+                                             href={"https://vk.com/im?sel=" + this.state.seller['id']}>
                                         <UI.Button level="buy" size="xl">
                                             Написать продавцу
                                         </UI.Button>
@@ -264,9 +374,18 @@ class Info extends Component {
                 </UI.Group>
 
                 <UI.Group>
-                    <UI.Div>
-                        Все товары продовца
-                    </UI.Div>
+                    <UI.Cell before={<Icon24LinkCircle fill="#4CAF50"/>}
+                             onClick={() => (this.props.history.push("/gds_user_id/" + this.props.vk.user.id))}>
+                        <UI.Link>Все объявления продавца</UI.Link>
+                    </UI.Cell>
+                </UI.Group>
+
+                <UI.Group>
+                    <CopyToClipboard text={"https://vk.com/app6689902#product/" + this.props.match.params.pId}>
+                        <UI.Cell before={<Icon24Copy fill="#4CAF50"/>}>
+                            <UI.Link>Копировать ссылку</UI.Link>
+                        </UI.Cell>
+                    </CopyToClipboard>
                 </UI.Group>
             </UI.Panel>
         )
@@ -276,8 +395,17 @@ class Info extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        gds: state.gds
+        gds: state.gds,
+        vk: state.vk
     }
 }
 
-export default connect(mapStateToProps)(Info);
+function mapDispatchToProps(dispatch) {
+    return {
+        userUpdate: function (name) {
+            dispatch(userActions.userUpdate(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Info);

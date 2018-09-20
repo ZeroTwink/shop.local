@@ -5,9 +5,10 @@ $api = new API();
 $arr_images = [];
 
 $in_news = Db::me()->prepare("INSERT INTO `gds` (`title`, `price`, `state`, `state_balls`, 
-`description`, `time`) VALUES (?, ?, ?, ?, ?, ?)");
+`description`, `country_id`, `country_title`, `city_id`, `city_title`, `time`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 $in_news->execute(Array($_POST['title'], $_POST['price'], $_POST['state'],
-    $_POST['state_balls'], $_POST['description'], TIME));
+    $_POST['state_balls'], $_POST['description'], $_POST['country_id'], $_POST['country_title'], $_POST['city_id'],
+    $_POST['city_title'], TIME));
 
 
 $last_id = Db::me()->lastInsertId();

@@ -1,13 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import thunk from 'redux-thunk';
-import {BrowserRouter, Route} from 'react-router-dom';
+import {HashRouter, Route, Switch} from 'react-router-dom';
 
 import {Provider} from 'react-redux';
 import {applyMiddleware, createStore} from 'redux';
 
 import rootReducer from './reducers/index';
 
+import PageLoader from './components/PageLoader';
 import App from './components/App';
 
 import './index.scss';
@@ -24,12 +25,15 @@ const store = createStore(
 
 ReactDOM.render(
     <Provider store={store}>
-        <BrowserRouter>
+        <HashRouter>
             <div id="wrapper">
                 <div id="game">
-                    <Route path="/:pageId?/:pId?" component={App}/>
+                    <Switch>
+                        <Route exact path="/" component={PageLoader}/>
+                        <Route path="/:pageId?/:pId?" component={App}/>
+                    </Switch>
                 </div>
             </div>
-        </BrowserRouter>
+        </HashRouter>
     </Provider>,
     document.getElementById('root'));

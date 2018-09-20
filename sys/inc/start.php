@@ -14,25 +14,19 @@ header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, Access-Con
  */
 //$sys = SysConfig::getInstance();
 
-//if(!isset($_GET['viewer_id']) || !isset($_GET['access_token']) || !isset($_GET['auth_key'])) {
-//    exit;
-//}
-//
-//$auth_key = md5(API_ID . '_' . $_GET['viewer_id'] . '_' . API_SECRET);
-//
-//if($_GET['auth_key'] != $auth_key) {
-//    exit;
-//}
-//
-//$user = new User($_GET['viewer_id']);
-//
-//if($user->id == false) {
-//    $res = Db::me()->prepare("INSERT INTO `users` (`id_vk`) VALUES (?)");
-//    $res->execute([$_GET['viewer_id']]);
-//    $id_user = Db::me()->lastInsertId();
-//
-//    $user = new User($_GET['viewer_id']);
-//}
+if(!isset($_GET['viewer_id']) || !isset($_GET['access_token'])) {
+    exit;
+}
+
+$user = new User($_GET['viewer_id']);
+
+if($user->id == false) {
+    $res = Db::me()->prepare("INSERT INTO `users` (`id_vk`) VALUES (?)");
+    $res->execute([$_GET['viewer_id']]);
+    $id_user = Db::me()->lastInsertId();
+
+    $user = new User($_GET['viewer_id']);
+}
 
 
 ini_set('error_reporting', E_ALL);

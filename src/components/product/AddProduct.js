@@ -3,6 +3,11 @@ import {connect} from 'react-redux';
 import axios from '../../utils/axios';
 import * as UI from '@vkontakte/vkui';
 
+import * as vkActions from '../../actions/vk';
+
+import * as sysActions from '../../actions/sys';
+import * as addProductActions from '../../actions/addProduct';
+
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
@@ -15,12 +20,12 @@ class AddProduct extends Component {
         super(props);
 
         this.state = {
-            arrImagesLoad: [],
-            priceInputValue: "",
-            titleInputValue: "",
-            descriptionInputValue: "",
-            stateProductInputValue: 0,
-            stateBallsInputValue: 3
+            // arrImagesLoad: [],
+            // priceInputValue: "",
+            // titleInputValue: "",
+            // descriptionInputValue: "",
+            // stateProductInputValue: 0,
+            // stateBallsInputValue: 3
         };
 
         this.formData = null;
@@ -29,6 +34,10 @@ class AddProduct extends Component {
 
     componentDidMount() {
         this.formData = new FormData();
+
+        if(this.props.addProduct.arrImagesLoad.length) {
+            return;
+        }
 
         let arr = [];
         for(let i = 0; i < 5; i++) {
@@ -39,9 +48,25 @@ class AddProduct extends Component {
             arr.push(data);
         }
 
-        this.setState({
+        this.props.setValues({
             arrImagesLoad: arr
         });
+    }
+
+    displayError(message) {
+        this.props.setPopout(
+            <UI.Alert
+                actions={[{
+                    title: 'OK',
+                    autoclose: true,
+                    style: 'destructive'
+                }]}
+                onClose={() => this.props.setPopout(null)}
+            >
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Ошибка</div></h2>
+                <div style={{textAlign: "center"}}>{message}</div>
+            </UI.Alert>
+        );
     }
 
     getOptionsSelect () {
@@ -55,20 +80,14 @@ class AddProduct extends Component {
     onChangePrice(e) {
         let val = e.target.value.replace(/[^\d]/g, '');
 
-        this.setState({
+        this.props.setValues({
             priceInputValue: val
-        });
+        })
     }
 
     onChangeTitle(e) {
-        this.setState({
+        this.props.setValues({
             titleInputValue: e.target.value
-        });
-    }
-
-    onChangeDescription(e) {
-        this.setState({
-            descriptionInputValue: e.target.value
         });
     }
 
@@ -79,15 +98,39 @@ class AddProduct extends Component {
             stateBalls = 5;
         }
 
-        this.setState({
+        this.props.setValues({
             stateProductInputValue: +e.target.value,
             stateBallsInputValue: stateBalls
         });
     }
 
     onChangeStateBalls(e) {
-        this.setState({
+        this.props.setValues({
             stateBallsInputValue: +e.target.value
+        });
+    }
+
+    onChangeSliderBalls(balls) {
+        this.props.setValues({
+            stateBallsInputValue: +balls
+        });
+    }
+
+    onChangeDescription(e) {
+        this.props.setValues({
+            descriptionInputValue: e.target.value
+        });
+    }
+
+    onChangeEmail(e) {
+        this.props.setValues({
+            emailInputValue: e.target.value
+        });
+    }
+
+    onChangePhoneNumber(e) {
+        this.props.setValues({
+            phoneNumberInputValue: e.target.value
         });
     }
 
@@ -116,39 +159,74 @@ class AddProduct extends Component {
     }
 
     submitForm() {
+        this.props.setPopout(<UI.ScreenSpinner />);
+
         for(let i = 0; i < 5; i++) {
-            if(this.state.arrImagesLoad[i]['file'] !== null) {
-                this.formData.append('img[]', this.state.arrImagesLoad[i]['file']);
+            if(this.props.addProduct.arrImagesLoad[i]['file'] !== null) {
+                this.formData.append('img[]', this.props.addProduct.arrImagesLoad[i]['file']);
             }
         }
 
-        if(this.state.priceInputValue !== "") {
-            this.formData.append('price', this.state.priceInputValue);
+        if(this.props.addProduct.priceInputValue !== "") {
+            this.formData.append('price', this.props.addProduct.priceInputValue);
         } else {
-            // TODO сообщение об ошибке
-            console.log("Не заполнено поле название");
+            this.displayError("Нужно указать цену на товар");
             return;
         }
 
-        if(this.state.titleInputValue.length > 2) {
-            this.formData.append('title', this.state.titleInputValue);
+        if(this.props.addProduct.country || this.props.vk.user['country']) {
+            let id = null;
+            let title = "";
+            if(this.props.addProduct.country) {
+                id = this.props.addProduct.country['id'];
+                title = this.props.addProduct.country['title'];
+            } else {
+                id = this.props.vk.user['country']['id'];
+                title = this.props.vk.user['country']['title'];
+            }
+
+            this.formData.append('country_id', id);
+            this.formData.append('country_title', title);
         } else {
-            // TODO сообщение об ошибке
-            console.log("Не заполнено поле название");
+            this.displayError("Не указана страна");
             return;
         }
 
-        this.formData.append('state', this.state.stateProductInputValue);
+        if(this.props.addProduct.city || this.props.vk.user['city']) {
+            let id = null;
+            let title = "";
+            if(this.props.addProduct.city) {
+                id = this.props.addProduct.city['id'];
+                title = this.props.addProduct.city['title'];
+            } else {
+                id = this.props.vk.user['city']['id'];
+                title = this.props.vk.user['city']['title'];
+            }
 
-        if(this.state.stateBallsInputValue !== "") {
-            this.formData.append('state_balls', this.state.stateBallsInputValue);
+            this.formData.append('city_id', id);
+            this.formData.append('city_title', title);
         } else {
-            // TODO сообщение об ошибке
-            console.log("Не заполнено поле название");
+            this.displayError("Не указан город");
             return;
         }
 
-        this.formData.append('description', this.state.descriptionInputValue);
+        if(this.props.addProduct.titleInputValue.length > 2) {
+            this.formData.append('title', this.props.addProduct.titleInputValue);
+        } else {
+            this.displayError("Длина названия должна быть не менее 3 символов");
+            return;
+        }
+
+        this.formData.append('state', this.props.addProduct.stateProductInputValue);
+
+        if(this.props.addProduct.stateBallsInputValue !== "") {
+            this.formData.append('state_balls', this.props.addProduct.stateBallsInputValue);
+        } else {
+            this.displayError("Нужно указать оценку товара");
+            return;
+        }
+
+        this.formData.append('description', this.props.addProduct.descriptionInputValue);
 
         axios({
             method: 'post',
@@ -157,10 +235,13 @@ class AddProduct extends Component {
             config: { headers: {'Content-Type': 'multipart/form-data' }}
         })
         .then((response) => {
-            this.props.history.push("/product/" + response.data.response["id_product"]);
+            this.props.setPopout(null);
+
+            this.props.history.replace("/product/" + response.data.response["id_product"]);
         })
         .catch((response) => {
             console.log(response);
+            this.props.setPopout(null);
         });
     }
 
@@ -168,7 +249,7 @@ class AddProduct extends Component {
         let file = e.target.files[0];
 
         this.imageReadPriv(e.target.files[0], (img) => {
-            let arr = [...this.state.arrImagesLoad];
+            let arr = [...this.props.addProduct.arrImagesLoad];
 
             for(let i = 0; i < 5; i++) {
                 if(arr[i]['image'] === null) {
@@ -179,7 +260,7 @@ class AddProduct extends Component {
                 }
             }
 
-            this.setState({
+            this.props.setValues({
                 arrImagesLoad: arr
             });
         }, (error) => {
@@ -188,14 +269,62 @@ class AddProduct extends Component {
     }
 
     deleteFileImgPriv(i) {
-        let arr = [...this.state.arrImagesLoad];
+        let arr = [...this.props.addProduct.arrImagesLoad];
 
         arr[i]['image'] = null;
         arr[i]['file'] = null;
 
-        this.setState({
+        this.props.setValues({
             arrImagesLoad: arr
         });
+    }
+
+    getSelectedCountry() {
+        let country = "Россия";
+
+        if(this.props.vk.user['country']) {
+            country = this.props.vk.user['country']['title'];
+        }
+
+        if(this.props.addProduct.country) {
+            country = this.props.addProduct.country.title
+        }
+
+        return country;
+    }
+
+    getSelectedCity() {
+        let city = null;
+
+        if(this.props.vk.user['city'] && this.props.addProduct.city !== null) {
+            city = this.props.vk.user['city']['title'];
+        }
+
+        if(this.props.addProduct.city) {
+            city = this.props.addProduct.city.title
+        }
+
+        return city;
+    }
+
+    getEmail() {
+        let email = this.props.vk.email? this.props.vk.email : null;
+
+        if(this.props.addProduct.emailInputValue) {
+            email = this.props.addProduct.emailInputValue;
+        }
+
+        return email;
+    }
+
+    getPhoneNumber() {
+        let phoneNumber = this.props.vk.phoneNumber? this.props.vk.phoneNumber : null;
+
+        if(this.props.addProduct.phoneNumberInputValue) {
+            phoneNumber = this.props.addProduct.phoneNumberInputValue;
+        }
+
+        return phoneNumber;
     }
 
     render() {
@@ -210,31 +339,55 @@ class AddProduct extends Component {
                     Добавить объявление
                 </UI.PanelHeader>
 
-                <UI.Group title="Фотографии">
+                <UI.Group title="Новый товар">
                     <UI.FormLayout>
-                        <UI.Input type="text" top={<span>Цена ₽ <span style={{color: "#4CAF50"}}>*</span></span>}
-                                  value={this.state.priceInputValue}
+                        <UI.Input type="number" top={<span>Цена ₽ <span style={{color: "#4CAF50"}}>*</span></span>}
+                                  defaultValue={this.props.addProduct.priceInputValue}
                                   onChange={this.onChangePrice.bind(this)} />
 
-                        <UI.Input type="text" top={<span>Название <span style={{color: "#4CAF50"}}>*</span></span>}
+                        <UI.Input type="text"
+                                  defaultValue={this.props.addProduct.titleInputValue}
+                                  top={<span>Название <span style={{color: "#4CAF50"}}>*</span></span>}
                                   onChange={this.onChangeTitle.bind(this)} />
 
-                        <div top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>} onChange={this.onChangeStateProduct.bind(this)}>
-                            <UI.Radio name="type" value="0" defaultChecked description="Товар был в эксплуатации">Б/у</UI.Radio>
-                            <UI.Radio name="type" value="1" description="Не разу не использовался">Новый</UI.Radio>
+                        <UI.SelectMimicry
+                            top="Выберите страну"
+                            placeholder="Не выбрана"
+                            onClick={() => this.props.setActiveView("selectCountries")}
+                        >
+                            {this.getSelectedCountry()}
+                        </UI.SelectMimicry>
+
+                        <UI.SelectMimicry
+                            top="Выберите город"
+                            placeholder="Не выбран"
+                            onClick={() => this.props.setActiveView("selectCity")}
+                        >
+                            {this.getSelectedCity()}
+                        </UI.SelectMimicry>
+
+                        <div top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
+                             onChange={this.onChangeStateProduct.bind(this)}>
+                            <UI.Radio name="type" value="0"
+                                      defaultChecked={!this.props.addProduct.stateProductInputValue}
+                                      description="Товар был в эксплуатации">Б/у</UI.Radio>
+                            <UI.Radio name="type" value="1"
+                                      defaultChecked={this.props.addProduct.stateProductInputValue}
+                                      description="Не разу не использовался">Новый</UI.Radio>
                         </div>
 
-                        {!this.state.stateProductInputValue? (
+                        {!this.props.addProduct.stateProductInputValue? (
                             <div top="Оцека состояние">
                                 <UI.Slider
                                     step={1}
                                     min={1}
                                     max={5}
-                                    value={Number(this.state.stateBallsInputValue)}
-                                    onChange={stateBallsInputValue => this.setState({stateBallsInputValue})}
+                                    value={Number(this.props.addProduct.stateBallsInputValue)}
+                                    onChange={this.onChangeSliderBalls.bind(this)}
                                     style={{marginBottom: 10}}
                                 />
-                                <UI.Select onChange={this.onChangeStateBalls.bind(this)} value={String(this.state.stateBallsInputValue)}>
+                                <UI.Select onChange={this.onChangeStateBalls.bind(this)}
+                                           value={String(this.props.addProduct.stateBallsInputValue)}>
                                     {this.getOptionsSelect()}
                                 </UI.Select>
                             </div>
@@ -245,8 +398,8 @@ class AddProduct extends Component {
                         </UI.File>
 
                         <div className="file_img_wrapper">
-                            {this.state.arrImagesLoad? (
-                                this.state.arrImagesLoad.map((e, i) => {
+                            {this.props.addProduct.arrImagesLoad? (
+                                this.props.addProduct.arrImagesLoad.map((e, i) => {
                                     if(e.image === null) {
                                         return (
                                             <div key={i} className="img_wrap"
@@ -267,9 +420,26 @@ class AddProduct extends Component {
                         </div>
 
                         <UI.Textarea top="Описание" placeholder="Описание товара"
-                                     onChange={this.onChangeDescription.bind(this)}/>
+                                     onChange={this.onChangeDescription.bind(this)}
+                                     defaultValue={this.props.addProduct.descriptionInputValue}/>
                     </UI.FormLayout>
+                </UI.Group>
 
+                <UI.Group title="Ваши контакты">
+                    <UI.FormLayout>
+                        <UI.Input type="email" top="E-mail"
+                                  defaultValue={this.getEmail()}
+                                  onClick={() => {vkActions.fetchEmail()}}
+                                  onChange={this.onChangeEmail.bind(this)}/>
+
+                        <UI.Input type="tel" top="Номер телефона"
+                                  defaultValue={this.getPhoneNumber()}
+                                  onClick={() => {vkActions.fetchPhoneNumber()}}
+                                  onChange={this.onChangePhoneNumber.bind(this)}/>
+                    </UI.FormLayout>
+                </UI.Group>
+
+                <UI.Group>
                     <UI.Div>
                         <UI.Button onClick={this.submitForm.bind(this)} level="buy" size="xl">
                             Отправить
@@ -283,9 +453,24 @@ class AddProduct extends Component {
 
 function mapStateToProps(state) {
     return {
-        user: state.user,
-        gds: state.gds
+        gds: state.gds,
+        vk: state.vk,
+        addProduct: state.addProduct
     }
 }
 
-export default connect(mapStateToProps)(AddProduct);
+function mapDispatchToProps(dispatch) {
+    return {
+        setActiveView: function (name) {
+            dispatch(sysActions.setActiveView(name))
+        },
+        setValues: function (name) {
+            dispatch(addProductActions.setValues(name))
+        },
+        setPopout: function (name) {
+            dispatch(sysActions.setPopout(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddProduct);

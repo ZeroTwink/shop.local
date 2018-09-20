@@ -80,3 +80,70 @@ img.center {
   display: block;
   margin: 0 auto;
 }
+
+
+.logo_header {
+  position: absolute;
+  left: 20px;
+  top: 4px;
+}
+
+.message_empty {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  text-align: center;
+  color: #8f8f8f;
+}
+
+
+#wrapper {
+  position: relative;
+  height: 100%;
+}
+
+#world_load {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  .img {
+    background: url("/images/logo_150.png");
+    width: 80px;
+    height: 80px;
+    background-size: cover;
+    animation:spin 4s linear infinite;
+  }
+}
+@keyframes spin { 100% {transform:rotate(360deg); } }
+
+.pull_down {
+  width: 100%;
+  height: 40px;
+
+  .img_one {
+    position: absolute;
+    left: 50%;
+    margin-left: -20px;
+    background: url("/images/pull_down.png");
+    width: 40px;
+    height: 40px;
+    opacity: 0.5;
+    background-size: cover;
+    animation:spin_refresh 3s linear infinite;
+  }
+  .img_two {
+    position: absolute;
+    left: 50%;
+    margin-left: -20px;
+    background: url("/images/pull_down.png");
+    width: 40px;
+    height: 40px;
+    opacity: 1;
+    background-size: cover;
+    animation:spin_refresh 3s linear infinite;
+  }
+}
+
+@keyframes spin_refresh { 100% {transform:rotate(360deg); } }
