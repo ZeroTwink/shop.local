@@ -1,26 +1,11 @@
+import detskiyMir from './categories/detskiyMir';
+import nedvizhimost from './categories/nedvizhimost';
+import transport from './categories/transport';
+
 const cat = [
-    {
-        title: "Детский мир",
-        sub: [
-            {
-                title: "Детская одежда"
-            },
-            {
-                title: "Детская обувь"
-            }
-        ]
-    },
-    {
-        title: "Недвижимость",
-        sub: [
-            {
-                title: "Квартиры, комнаты"
-            },
-            {
-                title: "Дома"
-            }
-        ]
-    }
+    detskiyMir,
+    nedvizhimost,
+    transport
 ];
 
 export default cat;

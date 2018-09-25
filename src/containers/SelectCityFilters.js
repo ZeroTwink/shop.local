@@ -8,12 +8,12 @@ import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Done from '@vkontakte/icons/dist/24/done';
 
 import * as sysActions from '../actions/sys';
-import * as addProductActions from '../actions/addProduct';
+import * as filtersActions from '../actions/filters';
 
 import * as vkActions from '../actions/vk';
 
 
-class SelectCity extends Component {
+class SelectCityFilters extends Component {
     constructor(props) {
         super(props);
 
@@ -30,8 +30,8 @@ class SelectCity extends Component {
 
     componentDidMount() {
         let idCountry = this.props.vk.user['country']? this.props.vk.user['country']['id'] : 1;
-        if(this.props.addProduct['country']) {
-            idCountry = this.props.addProduct['country']['id'];
+        if(this.props.filters['country']) {
+            idCountry = this.props.filters['country']['id'];
         }
 
         let params = {
@@ -39,7 +39,6 @@ class SelectCity extends Component {
             need_all: 0
         };
         vkActions.apiRequest("database.getCities", params, this.props.vk.accessToken, res => {
-            console.log(res);
             this.setState({
                 vkCities: res
             });
@@ -59,7 +58,7 @@ class SelectCity extends Component {
         window.removeEventListener('hashchange', this.popstateHandler, false);
 
         if(self.props.sys.active['view'] === "choose") {
-            self.props.history.push("/add_product");
+            self.props.history.push("/filters");
             self.props.setActive({view: "mainView", panel: ""});
         }
     }
@@ -79,8 +78,8 @@ class SelectCity extends Component {
             id = this.props.vk.user['city']['id'];
         }
 
-        if(this.props.addProduct.city) {
-            id = this.props.addProduct.city.id
+        if(this.props.filters.city) {
+            id = this.props.filters.city.id
         }
 
         return id;
@@ -99,8 +98,8 @@ class SelectCity extends Component {
         }
 
         let idCountry = this.props.vk.user['country']? this.props.vk.user['country']['id'] : 1;
-        if(this.props.addProduct['country']) {
-            idCountry = this.props.addProduct['country']['id'];
+        if(this.props.filters['country']) {
+            idCountry = this.props.filters['country']['id'];
         }
 
         let params = {
@@ -144,7 +143,7 @@ class SelectCity extends Component {
         const osname = UI.platform();
 
         return (
-            <UI.Panel id="addProductCity">
+            <UI.Panel id="filtersCity">
                 <UI.PanelHeader
                     left={<UI.HeaderButton
                         onClick={() => this.props.setActive({view: "mainView", panel: ""})}>{osname === UI.IOS ?
@@ -157,6 +156,12 @@ class SelectCity extends Component {
 
                 <UI.Group>
                     <UI.List>
+                        <UI.Cell key="0"
+                                 onClick={this.onChangeCity.bind(this, {id: 0, title: "Любой город"})}
+                                 asideContent={0 === this.getSelectedCityId() ? <Icon24Done fill="#4caf50" /> : null}
+                        >
+                            Любой город
+                        </UI.Cell>
                         {this.cities? this.cities.map((e, i) => (
                             <UI.Cell key={e.id}
                                      onClick={this.onChangeCity.bind(this, e)}
@@ -180,7 +185,7 @@ function mapStateToProps(state) {
     return {
         sys: state.sys,
         vk: state.vk,
-        addProduct: state.addProduct
+        filters: state.filters
     }
 }
 
@@ -190,9 +195,9 @@ function mapDispatchToProps(dispatch) {
             dispatch(sysActions.setActive(name))
         },
         setValues: function (name) {
-            dispatch(addProductActions.setValues(name))
+            dispatch(filtersActions.setValues(name))
         }
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectCity);
+export default connect(mapStateToProps, mapDispatchToProps)(SelectCityFilters);

@@ -5,11 +5,12 @@ import Icon24Add from '@vkontakte/icons/dist/24/add';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24List from '@vkontakte/icons/dist/24/list';
-import Icon24Notification from '@vkontakte/icons/dist/24/notification';
+import Icon24Settings from '@vkontakte/icons/dist/24/settings';
 import Icon24Favorite from '@vkontakte/icons/dist/24/favorite';
 import Icon24About from '@vkontakte/icons/dist/24/about';
 import Icon24User from '@vkontakte/icons/dist/24/user';
 import Icon24Help from '@vkontakte/icons/dist/24/help';
+import Icon24Filter from '@vkontakte/icons/dist/24/filter';
 
 
 class Menu extends Component {
@@ -59,13 +60,17 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/gds_user_id/" + this.props.vk.user.id))}>
                             Мои объявления
                         </UI.Cell>
-                        <UI.Cell before={<Icon24Notification/>}
-                                 onClick={() => (this.props.history.push("/product/1"))}>
-                            Уведомления
-                        </UI.Cell>
                         <UI.Cell before={<Icon24Favorite/>}
                                  onClick={() => (this.props.history.push("/favorites"))}>
                             Избранное
+                        </UI.Cell>
+                        <UI.Cell before={<Icon24Filter/>}
+                                 onClick={() => (this.props.history.push("/filters"))}>
+                            Фильтры (поиск)
+                        </UI.Cell>
+                        <UI.Cell before={<Icon24Settings/>}
+                                 onClick={() => (this.props.history.push("/product/1"))}>
+                            Настройки
                         </UI.Cell>
                     </UI.List>
                 </UI.Group>
@@ -73,15 +78,15 @@ class Menu extends Component {
                 <UI.Group>
                     <UI.List>
                         <UI.Cell before={<Icon24About/>}
-                                 onClick={() => (this.props.history.push("/product/1"))}>
-                            О программе
+                                 onClick={() => (this.props.history.push("/about"))}>
+                            О приложении
                         </UI.Cell>
                         <UI.Link href="https://vk.com/club171573725">
-                            <UI.Cell before={<Icon24Help/>}>
+                            <UI.Cell before={<Icon24User/>}>
                                 Наша группа
                             </UI.Cell>
                         </UI.Link>
-                        <UI.Cell before={<Icon24User/>}
+                        <UI.Cell before={<Icon24Help/>}
                                  onClick={() => (this.props.history.push("/product/1"))}>
                             Правила
                         </UI.Cell>

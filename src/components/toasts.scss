@@ -1,0 +1,89 @@
+.Block_View__popout {
+  position: static;
+  width: 0;
+  height: 0;
+}
+
+.Toasts {
+  user-select: none;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+
+  &--android {
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    bottom: 12%;
+    max-width: 280px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    background-color: rgba(84, 84, 84, 0.9);
+    animation: animation-android-toasts 3s ease;
+  }
+
+  &--ios {
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    bottom: 12%;
+    width: 280px;
+    text-align: center;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: bold;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%);
+    border-radius: 6px;
+    background-color: rgba(35, 35, 35, 0.9);
+    animation: animation-ios-toasts 3s ease;
+  }
+}
+
+
+
+@keyframes animation-android-toasts {
+  0% {
+    visibility: visible;
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@keyframes animation-ios-toasts {
+  0% {
+    visibility: visible;
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}

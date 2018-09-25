@@ -2,6 +2,18 @@
   background: #4CAF50;
 }
 
+.PanelHeader-content--brand, .PanelHeader-left-in--brand, .PanelHeader-addon--brand, .PanelHeader-right--brand {
+  background-color: #4CAF50;
+}
+
+.Search--android.Search--default .Search__container {
+  background-color: #fff;
+}
+.Search--android.Search--default .Search__input {
+  color: #373737;
+}
+
+
 .Tabs--android.Tabs--light .TabsItem--selected {
   color: #4CAF50;
 }
@@ -83,9 +95,17 @@ img.center {
 
 
 .logo_header {
-  position: absolute;
-  left: 20px;
+  position: relative;
+  left: 10px;
+  top: 9px;
+  width: 112px;
+}
+
+.logo_header--ios {
+  position: relative;
+  left: 0;
   top: 4px;
+  width: 112px;
 }
 
 .message_empty {

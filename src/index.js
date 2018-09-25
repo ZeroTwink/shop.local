@@ -14,7 +14,7 @@ import App from './components/App';
 import './index.scss';
 
 const logger = store => next => action => {
-    console.log('dispatching', action);
+    // console.log('dispatching', action);
     return next(action);
 };
 
@@ -26,14 +26,10 @@ const store = createStore(
 ReactDOM.render(
     <Provider store={store}>
         <HashRouter>
-            <div id="wrapper">
-                <div id="game">
-                    <Switch>
-                        <Route exact path="/" component={PageLoader}/>
-                        <Route path="/:pageId?/:pId?" component={App}/>
-                    </Switch>
-                </div>
-            </div>
+            <Switch>
+                <Route exact path="/" component={PageLoader}/>
+                <Route path="/:pageId?/:pId?" component={App}/>
+            </Switch>
         </HashRouter>
     </Provider>,
     document.getElementById('root'));

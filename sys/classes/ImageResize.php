@@ -34,16 +34,16 @@ class ImageResize
     {
         switch ($this->_ext) {
             case 'jpg':
-                $this->_imageCreate = imagecreatefromjpeg($this->_path);
+                $this->_imageCreate = @imagecreatefromjpeg($this->_path);
                 break;
             case 'jpeg':
-                $this->_imageCreate = imagecreatefromjpeg($this->_path);
+                $this->_imageCreate = @imagecreatefromjpeg($this->_path);
                 break;
             case 'gif':
-                $this->_imageCreate = imagecreatefromgif($this->_path);
+                $this->_imageCreate = @imagecreatefromgif($this->_path);
                 break;
             case 'png':
-                $this->_imageCreate = imagecreatefrompng($this->_path);
+                $this->_imageCreate = @imagecreatefrompng($this->_path);
                 break;
             default:
                 return false;
@@ -55,7 +55,7 @@ class ImageResize
      */
     private function _setSize()
     {
-        $arr = getimagesize($this->_path);
+        $arr = @getimagesize($this->_path);
 
         $this->_width = $arr[0];
         $this->_height = $arr[1];

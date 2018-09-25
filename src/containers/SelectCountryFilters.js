@@ -8,10 +8,10 @@ import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Done from '@vkontakte/icons/dist/24/done';
 
 import * as sysActions from '../actions/sys';
-import * as addProductActions from '../actions/addProduct';
+import * as filtersActions from '../actions/filters';
 
 
-class SelectCountries extends Component {
+class SelectCountryFilters extends Component {
     constructor(props) {
         super(props);
 
@@ -47,11 +47,10 @@ class SelectCountries extends Component {
 
     popstateHandler(e) {
         let self = this;
-
         window.removeEventListener('hashchange', this.popstateHandler, false);
 
         if(self.props.sys.active['view'] === "choose") {
-            self.props.history.push("/add_product");
+            self.props.history.push("/filters");
             self.props.setActive({view: "mainView", panel: ""});
         }
     }
@@ -77,8 +76,8 @@ class SelectCountries extends Component {
             id = this.props.vk.user['country']['id'];
         }
 
-        if(this.props.addProduct.country) {
-            id = this.props.addProduct.country.id
+        if(this.props.filters.country) {
+            id = this.props.filters.country.id
         }
 
         return id;
@@ -88,7 +87,7 @@ class SelectCountries extends Component {
         const osname = UI.platform();
 
         return (
-            <UI.Panel id="addProductCountry">
+            <UI.Panel id="filtersCountry">
                 <UI.PanelHeader
                     left={<UI.HeaderButton
                         onClick={() => this.props.setActive({view: "mainView", panel: ""})}>{osname === UI.IOS ?
@@ -100,8 +99,8 @@ class SelectCountries extends Component {
                     <UI.List>
                         {this.state.vkCountries.items? this.state.vkCountries.items.map((e, i) => (
                             <UI.Cell key={e.id}
-                                onClick={this.onChangeCountry.bind(this, e)}
-                                asideContent={e.id === this.getSelectedCountryId() ? <Icon24Done fill="#4caf50" /> : null}
+                                     onClick={this.onChangeCountry.bind(this, e)}
+                                     asideContent={e.id === this.getSelectedCountryId() ? <Icon24Done fill="#4caf50" /> : null}
                             >
                                 {e.title}
                             </UI.Cell>
@@ -117,7 +116,7 @@ function mapStateToProps(state) {
     return {
         sys: state.sys,
         vk: state.vk,
-        addProduct: state.addProduct
+        filters: state.filters
     }
 }
 
@@ -127,9 +126,9 @@ function mapDispatchToProps(dispatch) {
             dispatch(sysActions.setActive(name))
         },
         setValues: function (name) {
-            dispatch(addProductActions.setValues(name))
+            dispatch(filtersActions.setValues(name))
         }
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectCountries);
+export default connect(mapStateToProps, mapDispatchToProps)(SelectCountryFilters);

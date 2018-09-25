@@ -4,3 +4,10 @@ export default function gdsLoad(name) {
         payload: name
     }
 }
+
+export function gdsUpdate(name) {
+    return {
+        type: "GDS_UPDATE",
+        payload: name
+    }
+}

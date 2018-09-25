@@ -14,8 +14,7 @@ class Favorites extends Component {
 
         this.state = {
             gds: [],
-            hasMore: true,
-            requestSend: false
+            hasMore: true
         };
 
         this.page = 0;
@@ -26,14 +25,6 @@ class Favorites extends Component {
     }
 
     loadNextItems() {
-        if(this.state.requestSend) {
-            return;
-        }
-
-        this.setState({
-            requestSend: true
-        });
-
         axios.get("/api/get_favorites.php", {
             params: {
                 page: this.page
@@ -41,8 +32,7 @@ class Favorites extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMove: !res.data.response.gds.length,
-                requestSend: false
+                hasMove: !res.data.response.gds.length
             });
 
             this.page++;

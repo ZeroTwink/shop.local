@@ -5,12 +5,11 @@ import axios from '../utils/axios';
 
 import * as types from '../actions/types/vkActionTypes';
 
-import gdsLoad from '../actions/gdsLoad';
-
 import VKConnect from '../utils/VKConnect';
 import * as VKActions from '../actions/vk';
 import * as userActions from '../actions/user';
 import * as sysActions from '../actions/sys';
+import * as gdsActions from '../actions/gds';
 
 
 
@@ -22,8 +21,6 @@ class PageLoader extends Component {
             accessToken: "",
             user: {}
         };
-
-        console.log(props);
     }
 
     componentDidMount() {
@@ -59,7 +56,7 @@ class PageLoader extends Component {
 
         this.props.initApp();
 
-        VKConnect.send('VKWebAppGetAuthToken', {'app_id': 6689902});
+        VKConnect.send('VKWebAppGetAuthToken', {'app_id': '6689902'});
     }
 
     step2() {
@@ -96,14 +93,14 @@ class PageLoader extends Component {
 
             if(countLoaders >= 2) {
                 if(this.props.sys.refresh) {
-                    this.props.history.replace(decodeURIComponent(this.props.sys.refresh));
+                    this.props.history.replace("/main");
 
-                    this.props.setRefresh("");
+                    // this.props.setRefresh("");
 
                     return;
                 }
 
-                // TODO Это чисто чтобы можно было назат вернутся при разработке
+                // TODO Это чисто чтобы можно было назат вернутся при разработке, оставить replace, а push убрать
                 if(process.env.NODE_ENV === 'production') {
                     this.props.history.replace("/main");
                 } else {
@@ -150,7 +147,9 @@ class PageLoader extends Component {
         return (
             <div>
                 <div id="world_load">
+                    {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
                     {/*{this.state.accessToken? JSON.stringify(this.state.accessToken) : null}*/}
+                    {/*</div>*/}
                     <div className="img" />
                 </div>
             </div>
@@ -181,7 +180,7 @@ function mapDispatchToProps(dispatch) {
             });
         },
         gdsLoad: function (name) {
-            dispatch(gdsLoad(name));
+            dispatch(gdsActions.gdsLoad(name));
         },
         initApp: function (name) {
             dispatch(VKActions.initApp())

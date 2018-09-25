@@ -1,14 +1,12 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import * as UI from '@vkontakte/vkui';
-import Icon24Search from '@vkontakte/icons/dist/24/search';
-import Icon24Filter from '@vkontakte/icons/dist/24/filter';
-import Icon24Add from '@vkontakte/icons/dist/24/add';
-import Icon28Menu from '@vkontakte/icons/dist/28/menu';
 
 import GalleryItem from '../components/Main/GalleryItem';
 
 import '@vkontakte/vkui/dist/vkui.css';
+
+import * as sysActions from '../actions/sys';
 
 import '../components/main.scss';
 
@@ -23,7 +21,11 @@ class Main extends Component {
 
 
     componentDidMount() {
+        if(this.props.sys.refresh) {
+            this.props.history.push(decodeURIComponent(this.props.sys.refresh));
 
+            this.props.setRefresh("");
+        }
     }
 
     componentWillMount() {
@@ -39,30 +41,10 @@ class Main extends Component {
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader>
-                    <img className="logo_header" src="/images/logo_header.png" alt="" />
+                    <img className={UI.getClassName("logo_header")} src="/images/logo_header.png" alt="" />
                 </UI.PanelHeader>
 
-                <div style={{marginBottom: 46}}>
-                    <UI.FixedLayout vertical="bottom">
-                        <div style={{display: 'flex', background: '#4CAF50'}}>
-                            <UI.Button size="l" level="3" stretched
-                                       onClick={() => (this.props.history.push("/search"))}>
-                                <Icon24Search fill="#fff"/></UI.Button>
-                            <UI.Button size="l" stretched level="3"
-                                       onClick={() => (this.props.history.push("/filters"))}>
-                                <Icon24Filter fill="#fff"/>
-                            </UI.Button>
-                            <UI.Button size="l" stretched level="3"
-                                       onClick={() => (this.props.history.push("/add_product"))}>
-                                <Icon24Add fill="#fff"/>
-                            </UI.Button>
-                            <UI.Button size="l" stretched level="3"
-                                       onClick={() => (this.props.history.push("/menu"))}>
-                                <Icon28Menu fill="#fff"/>
-                            </UI.Button>
-                        </div>
-                    </UI.FixedLayout>
-
+                <div>
                     <UI.Group title="То что нужно">
                         <UI.Gallery
                             slideWidth="100%"
@@ -76,9 +58,7 @@ class Main extends Component {
                         </UI.Gallery>
                     </UI.Group>
 
-                    {/*{this.props.vk.accessToken}*/}
-
-                    <UI.Group style={{ paddingBottom: 24 }}>
+                    <UI.Group style={{ paddingBottom: 16 }}>
                         <UI.Header level="2" aside={<UI.Link>Показать все</UI.Link>}>
                             Рекомендуемые
                         </UI.Header>
@@ -150,40 +130,6 @@ class Main extends Component {
                             }) : null}
                         </UI.List>
                     </UI.Group>
-
-                    <UI.Group style={{ paddingBottom: 24 }}>
-                        <UI.Header level="2" aside={<UI.Link>Показать все</UI.Link>}>
-                            Ваш город
-                        </UI.Header>
-                        <UI.HorizontalScroll>
-                            <div className="h_scroll_items_wrap">
-                                {this.props.gds.gds_city.length? this.props.gds.gds_city.map((e, i) => {
-                                    let image = "";
-                                    if(e['images'] !== "") {
-                                        image = e["images"].split(",")[0];
-
-                                        image = window.location.protocol + "//" + window.location.hostname +
-                                            "/sys/files/gds/" + image;
-                                    } else {
-                                        image = "/images/no_photo_info.png";
-                                    }
-                                    return (
-                                        <div className="h_scroll_item" key={e.id}
-                                             onClick={() => (this.props.history.push("/product/" + e.id))}>
-                                            <div className="price">
-                                                {e.price} ₽
-                                            </div>
-                                            <img className="img_avatar"
-                                                 style={{backgroundImage: "url("+image+")" }} alt="" />
-                                            <div className="text">
-                                                {e.title}
-                                            </div>
-                                        </div>
-                                    );
-                                }) : null}
-                            </div>
-                        </UI.HorizontalScroll>
-                    </UI.Group>
                 </div>
             </UI.Panel>
         )
@@ -194,8 +140,17 @@ function mapStateToProps(state) {
     return {
         user: state.user,
         gds: state.gds,
-        vk: state.vk
+        vk: state.vk,
+        sys: state.sys
     }
 }
 
-export default connect(mapStateToProps)(Main);
+function mapDispatchToProps(dispatch) {
+    return {
+        setRefresh: function (name) {
+            dispatch(sysActions.setRefresh(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Main);

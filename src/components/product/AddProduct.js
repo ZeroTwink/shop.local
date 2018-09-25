@@ -7,6 +7,9 @@ import * as vkActions from '../../actions/vk';
 
 import * as sysActions from '../../actions/sys';
 import * as addProductActions from '../../actions/addProduct';
+import * as gdsActions from '../../actions/gds';
+
+import categories from '../../utils/categories';
 
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
@@ -20,12 +23,7 @@ class AddProduct extends Component {
         super(props);
 
         this.state = {
-            // arrImagesLoad: [],
-            // priceInputValue: "",
-            // titleInputValue: "",
-            // descriptionInputValue: "",
-            // stateProductInputValue: 0,
-            // stateBallsInputValue: 3
+
         };
 
         this.formData = null;
@@ -82,12 +80,24 @@ class AddProduct extends Component {
 
         this.props.setValues({
             priceInputValue: val
-        })
+        });
     }
 
     onChangeTitle(e) {
         this.props.setValues({
             titleInputValue: e.target.value
+        });
+    }
+
+    onChangeCategory(e) {
+        this.props.setValues({
+            category: e.target.value
+        });
+    }
+
+    onChangeSubcategory(e) {
+        this.props.setValues({
+            subcategory: e.target.value
         });
     }
 
@@ -217,6 +227,18 @@ class AddProduct extends Component {
             return;
         }
 
+        if(this.props.addProduct.category) {
+            this.formData.append('category', this.props.addProduct.category);
+        } else {
+            this.formData.append('category', 0);
+        }
+
+        if(this.props.addProduct.subcategory) {
+            this.formData.append('subcategory', this.props.addProduct.subcategory);
+        } else {
+            this.formData.append('subcategory', 0);
+        }
+
         this.formData.append('state', this.props.addProduct.stateProductInputValue);
 
         if(this.props.addProduct.stateBallsInputValue !== "") {
@@ -228,6 +250,18 @@ class AddProduct extends Component {
 
         this.formData.append('description', this.props.addProduct.descriptionInputValue);
 
+        if(this.getEmail()) {
+            this.formData.append('email', this.getEmail());
+        } else {
+            this.formData.append('email', "");
+        }
+
+        if(this.getPhoneNumber()) {
+            this.formData.append('phone_number', this.getPhoneNumber());
+        } else {
+            this.formData.append('phone_number', "");
+        }
+
         axios({
             method: 'post',
             url: "/api/add_product.php",
@@ -237,7 +271,20 @@ class AddProduct extends Component {
         .then((response) => {
             this.props.setPopout(null);
 
-            this.props.history.replace("/product/" + response.data.response["id_product"]);
+            if(response.data.error) {
+                this.displayError(response.data.error.message);
+
+                return;
+            }
+
+            let gdsNew = [...this.props.gds['gds_new']];
+            gdsNew.unshift(response.data.response["product"]);
+
+            this.props.gdsUpdate({
+                "gds_new": gdsNew
+            });
+
+            this.props.history.replace("/product/" + response.data.response["product"]['id']);
         })
         .catch((response) => {
             console.log(response);
@@ -308,7 +355,7 @@ class AddProduct extends Component {
     }
 
     getEmail() {
-        let email = this.props.vk.email? this.props.vk.email : null;
+        let email = this.props.vk.email? this.props.vk.email : "";
 
         if(this.props.addProduct.emailInputValue) {
             email = this.props.addProduct.emailInputValue;
@@ -318,13 +365,28 @@ class AddProduct extends Component {
     }
 
     getPhoneNumber() {
-        let phoneNumber = this.props.vk.phoneNumber? this.props.vk.phoneNumber : null;
+        let phoneNumber = this.props.vk.phoneNumber? this.props.vk.phoneNumber : "";
 
         if(this.props.addProduct.phoneNumberInputValue) {
             phoneNumber = this.props.addProduct.phoneNumberInputValue;
         }
 
         return phoneNumber;
+    }
+
+    getOptionSubcategory() {
+        let subcategories = null;
+        if(categories[this.props.addProduct.category]) {
+            subcategories = categories[this.props.addProduct.category]['sub'].map((e, i) => (
+                <option key={i} value={i}>{e.title}</option>
+            ))
+        } else {
+            subcategories = categories[0]['sub'].map((e, i) => (
+                <option key={i} value={i}>{e.title}</option>
+            ))
+        }
+
+        return subcategories;
     }
 
     render() {
@@ -336,10 +398,11 @@ class AddProduct extends Component {
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    Добавить объявление
+                    Новое объявление
                 </UI.PanelHeader>
 
-                <UI.Group title="Новый товар">
+                <UI.Group title="Новое объявление"
+                          description={<span>Поля отмеченные <span style={{color: "#4CAF50"}}>*</span> обязательны для заполнения</span>}>
                     <UI.FormLayout>
                         <UI.Input type="number" top={<span>Цена ₽ <span style={{color: "#4CAF50"}}>*</span></span>}
                                   defaultValue={this.props.addProduct.priceInputValue}
@@ -350,8 +413,22 @@ class AddProduct extends Component {
                                   top={<span>Название <span style={{color: "#4CAF50"}}>*</span></span>}
                                   onChange={this.onChangeTitle.bind(this)} />
 
+                        <UI.Select value={this.props.addProduct.category? this.props.addProduct.category : 0}
+                                   onChange={this.onChangeCategory.bind(this)}
+                                   top={<span>Категория <span style={{color: "#4CAF50"}}>*</span></span>}>
+                            {categories.map((e, i) => (
+                                <option key={i} value={i}>{e.title}</option>
+                            ))}
+                        </UI.Select>
+
+                        <UI.Select value={this.props.addProduct.subcategory? this.props.addProduct.subcategory : 0}
+                                   onChange={this.onChangeSubcategory.bind(this)}
+                                   top={<span>Подкатегория <span style={{color: "#4CAF50"}}>*</span></span>}>
+                            {this.getOptionSubcategory()}
+                        </UI.Select>
+
                         <UI.SelectMimicry
-                            top="Выберите страну"
+                            top={<span>Страна <span style={{color: "#4CAF50"}}>*</span></span>}
                             placeholder="Не выбрана"
                             onClick={() => this.props.setActive({view: "choose", panel: "addProductCountry"})}
                         >
@@ -359,7 +436,7 @@ class AddProduct extends Component {
                         </UI.SelectMimicry>
 
                         <UI.SelectMimicry
-                            top="Выберите город"
+                            top={<span>Город <span style={{color: "#4CAF50"}}>*</span></span>}
                             placeholder="Не выбран"
                             onClick={() => this.props.setActive({view: "choose", panel: "addProductCity"})}
                         >
@@ -393,7 +470,11 @@ class AddProduct extends Component {
                             </div>
                         ) : null}
 
-                        <UI.File level="buy" name="img[]" onChange={this.fileChange.bind(this)} top="Загруска фотографий" multiple before={<Icon24Camera />} size="l">
+                        <UI.File level="buy" name="img[]"
+                                 onChange={this.fileChange.bind(this)}
+                                 top="Фотографии (jpeg, png) вес не более 4 Мб"
+                                 multiple
+                                 before={<Icon24Camera />} size="l">
                             Добавить фото
                         </UI.File>
 
@@ -469,6 +550,9 @@ function mapDispatchToProps(dispatch) {
         },
         setPopout: function (name) {
             dispatch(sysActions.setPopout(name))
+        },
+        gdsUpdate: function (name) {
+            dispatch(gdsActions.gdsUpdate(name))
         }
     }
 }

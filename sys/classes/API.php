@@ -48,7 +48,7 @@ class API
         if(isset($this->_assigned['error'])) {
             $response = [];
             $response['error'] = [
-                "code" => isset($this->_assigned['error']['code']) ? $this->_assigned['error']['code'] : 1,
+                "type" => isset($this->_assigned['error']['type']) ? $this->_assigned['error']['type'] : 1,
                 "message" => isset($this->_assigned['error']['message']) ? $this->_assigned['error']['message'] : 'Возникла ошибка'
             ];
 

@@ -3,12 +3,12 @@ include_once('../sys/inc/start.php');
 $api = new API();
 
 
-$res = Db::me()->query("SELECT * FROM `gds` ORDER BY `time` DESC LIMIT 8");
+$res = Db::me()->query("SELECT * FROM `gds` ORDER BY `time` DESC LIMIT 10");
 $new_gds = $res->fetchAll();
 
 $api->assign("gds_new", $new_gds);
 
-
+$gds_city = [];
 if(isset($_GET['city_id']) && !empty($_GET['city_id'])) {
     $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `city_id` = ? ORDER BY `time` DESC LIMIT 10");
     $res->execute([$_GET['city_id']]);
@@ -19,6 +19,15 @@ if(isset($_GET['city_id']) && !empty($_GET['city_id'])) {
         $res->execute([$_GET['country_id']]);
         $gds_city = $res->fetchAll();
     }
-
-    $api->assign("gds_city", $gds_city);
+} else if(isset($_GET['country_id']) && !empty($_GET['country_id'])) {
+    $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `country_id` = ? ORDER BY `time` ASC LIMIT 10");
+    $res->execute([$_GET['country_id']]);
+    $gds_city = $res->fetchAll();
 }
+
+if(!$gds_city) {
+    $res = Db::me()->query("SELECT * FROM `gds` ORDER BY `time` ASC LIMIT 10");
+    $gds_city = $res->fetchAll();
+}
+
+$api->assign("gds_city", $gds_city);

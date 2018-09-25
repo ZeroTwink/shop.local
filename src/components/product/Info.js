@@ -3,17 +3,23 @@ import {connect} from 'react-redux';
 import Moment from 'react-moment';
 import axios from '../../utils/axios';
 import categories from '../../utils/categories';
+import Toasts from '../Toasts';
 import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Phone from '@vkontakte/icons/dist/24/phone';
-import Icon24Music from '@vkontakte/icons/dist/24/music';
 import Icon24helpOutline from '@vkontakte/icons/dist/24/help_outline';
 import Icon24LinkCircle from '@vkontakte/icons/dist/24/link_circle';
 import Icon24Copy from '@vkontakte/icons/dist/24/copy';
+import Icon24LogoVk from '@vkontakte/icons/dist/24/logo_vk';
+import Icon24Mention from '@vkontakte/icons/dist/24/mention';
+import Icon16Dropdown from '@vkontakte/icons/dist/16/dropdown';
+import Icon24Delete from '@vkontakte/icons/dist/24/delete';
 
 import * as vkActions from '../../actions/vk';
 import * as userActions from '../../actions/user';
+import * as sysActions from '../../actions/sys';
+import * as gdsActions from '../../actions/gds';
 
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
@@ -39,15 +45,13 @@ class Info extends Component {
 
             addedToFavorites: false,
             // Идет запрос на сервер, не делать повторных действий
-            requestFavorites: false
+            requestFavorites: false,
+
+            contextOpened: false
         };
     }
 
     componentDidMount() {
-        console.log(categories);
-
-        console.log(this.props.user);
-
         let element = this.props.user.favorites.filter(id => +id === +this.props.match.params.pId);
         if(element.length) {
             this.setState({
@@ -91,13 +95,43 @@ class Info extends Component {
                 id: this.props.match.params.pId
             }
         }).then(res => {
+            if(res.data.error) {
+                this.displayError(res.data.error.message);
+
+                return;
+            }
+
             this.setState({
-                product: res.data.response.product[0],
+                product: res.data.response.product,
                 waitLoadProduct: false
             });
         }).catch(error => {
             console.log(error);
         });
+    }
+
+    displayError(message) {
+        this.props.setPopout(
+            <UI.Alert
+                actions={[{
+                    title: 'OK',
+                    autoclose: true,
+                    style: 'destructive'
+                }]}
+                onClose={() => this.props.setPopout(null)}
+            >
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Ошибка</div></h2>
+                <div style={{textAlign: "center"}}>{message}</div>
+            </UI.Alert>
+        );
+    }
+
+    displayToasts(text) {
+        this.props.setPopout(
+            <Toasts>
+                {text}
+            </Toasts>
+        );
     }
 
     substr(text) {
@@ -188,6 +222,51 @@ class Info extends Component {
         });
     }
 
+    toggleContext() {
+        this.setState({
+            contextOpened: !this.state.contextOpened
+        });
+    }
+
+    onClickDeleteGds() {
+        axios.get("/api/remove_product.php", {
+            params: {
+                id: this.props.match.params.pId
+            }
+        }).then(res => {
+            if(res.data.error) {
+                this.displayError(res.data.error.message);
+
+                return;
+            }
+
+
+            let gdsNew = [...this.props.gds['gds_new']];
+
+            let indexOnArr = null;
+            gdsNew.filter((e, i) => {
+                if(+e.id === +this.props.match.params.pId) {
+                    indexOnArr = i;
+                    return true;
+                }
+
+                return false;
+            });
+
+            if(indexOnArr !== null) {
+                gdsNew.splice(indexOnArr, 1);
+
+                this.props.gdsUpdate({
+                    "gds_new": gdsNew
+                });
+            }
+
+            this.props.history.replace("/main");
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
 
     render() {
         const osname = UI.platform();
@@ -224,8 +303,25 @@ class Info extends Component {
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    Товары
+                    {+product['id_vk'] === +this.props.vk.user.id? (
+                        <UI.PanelHeaderContent aside={<Icon16Dropdown />} onClick={this.toggleContext.bind(this)}>
+                            Объявление
+                        </UI.PanelHeaderContent>
+                    ) : ("Объявление")}
                 </UI.PanelHeader>
+
+                {+product['id_vk'] === +this.props.vk.user.id? (
+                    <UI.HeaderContext opened={this.state.contextOpened} onClose={this.toggleContext.bind(this)}>
+                        <UI.List>
+                            <UI.Cell
+                                before={<Icon24Delete />}
+                                onClick={this.onClickDeleteGds.bind(this)}
+                            >
+                                Удалить объявление
+                            </UI.Cell>
+                        </UI.List>
+                    </UI.HeaderContext>
+                ) : null}
 
                 <UI.Group title="Фотографии">
                     <UI.Gallery
@@ -333,6 +429,16 @@ class Info extends Component {
                                         </UI.InfoRow>
                                     </UI.Cell>
                                     <UI.Cell>
+                                        <UI.InfoRow title="Страна">
+                                            {product['country_title']}
+                                        </UI.InfoRow>
+                                    </UI.Cell>
+                                    <UI.Cell>
+                                        <UI.InfoRow title="Город">
+                                            {product['city_title']}
+                                        </UI.InfoRow>
+                                    </UI.Cell>
+                                    <UI.Cell>
                                         <UI.InfoRow title="Вид товара">
                                             {categories[product.category]['title'] + " / " +
                                             categories[product.category]["sub"][product.subcategory]['title']}
@@ -352,18 +458,38 @@ class Info extends Component {
                                              description="Продавец">
                                         {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
                                     </UI.Cell>
-                                    <UI.Cell before={<Icon24Phone fill="#4CAF50"/>}>
-                                        {product['phone_number']? product['phone_number'] : "Не указан"}
-                                    </UI.Cell>
-                                    <UI.Cell before={<Icon24Music fill="#4CAF50"/>}>
-                                        {product['email']? product['email'] : "Не указан"}
-                                    </UI.Cell>
+                                    {product['phone_number']? (
+                                        <CopyToClipboard text={product['phone_number']}>
+                                            <UI.Cell onClick={this.displayToasts.bind(this, "Номер скопирован")}
+                                                     before={<Icon24Phone fill="#4CAF50"/>}
+                                                     asideContent={<Icon24Copy fill="#4CAF50"/>}>
+                                                {product['phone_number']}
+                                            </UI.Cell>
+                                        </CopyToClipboard>
+                                    ) : (
+                                        <UI.Cell before={<Icon24Phone fill="#4CAF50"/>}>
+                                            Не указан
+                                        </UI.Cell>
+                                    )}
+                                    {product['email']? (
+                                        <CopyToClipboard text={product['email']}>
+                                            <UI.Cell onClick={this.displayToasts.bind(this, "E-mail скопирован")}
+                                                     before={<Icon24Mention fill="#4CAF50"/>}
+                                                     asideContent={<Icon24Copy fill="#4CAF50"/>}>
+                                                {product['email']}
+                                            </UI.Cell>
+                                        </CopyToClipboard>
+                                    ) : (
+                                        <UI.Cell before={<Icon24Mention fill="#4CAF50"/>}>
+                                            Не указан
+                                        </UI.Cell>
+                                    )}
                                 </UI.List>
 
                                 <UI.Div>
                                     <UI.Link style={{color: "#fff"}}
                                              href={"https://vk.com/im?sel=" + this.state.seller['id']}>
-                                        <UI.Button level="buy" size="xl">
+                                        <UI.Button before={<Icon24LogoVk fill="#fff"/>} level="buy" size="xl">
                                             Написать продавцу
                                         </UI.Button>
                                     </UI.Link>
@@ -375,15 +501,16 @@ class Info extends Component {
 
                 <UI.Group>
                     <UI.Cell before={<Icon24LinkCircle fill="#4CAF50"/>}
-                             onClick={() => (this.props.history.push("/gds_user_id/" + this.props.vk.user.id))}>
+                             onClick={() => (this.props.history.push("/gds_user_id/" + product['id_vk']))}>
                         <UI.Link>Все объявления продавца</UI.Link>
                     </UI.Cell>
                 </UI.Group>
 
                 <UI.Group>
                     <CopyToClipboard text={"https://vk.com/app6689902#product/" + this.props.match.params.pId}>
-                        <UI.Cell before={<Icon24Copy fill="#4CAF50"/>}>
-                            <UI.Link>Копировать ссылку</UI.Link>
+                        <UI.Cell onClick={this.displayToasts.bind(this, "Ссылка скопирована")}
+                                 before={<Icon24Copy fill="#4CAF50"/>}>
+                            <UI.Link>Копировать ссылку объявления</UI.Link>
                         </UI.Cell>
                     </CopyToClipboard>
                 </UI.Group>
@@ -404,6 +531,12 @@ function mapDispatchToProps(dispatch) {
     return {
         userUpdate: function (name) {
             dispatch(userActions.userUpdate(name))
+        },
+        setPopout: function (name) {
+            dispatch(sysActions.setPopout(name))
+        },
+        gdsUpdate: function (name) {
+            dispatch(gdsActions.gdsUpdate(name))
         }
     }
 }

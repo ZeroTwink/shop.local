@@ -1,0 +1,1 @@
+export const FILTERS_SET_VALUES = 'filters.setValues';
