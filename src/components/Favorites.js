@@ -5,6 +5,8 @@ import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
+import categories from '../utils/categories';
+
 import InfiniteScroll from 'react-infinite-scroll-component';
 
 
@@ -71,7 +73,7 @@ class Favorites extends Component {
                                  <div style={{color: "#fff"}}>{e.price} ₽</div>
                              </div>
                          }
-                         description="Компьютеры"
+                         description={categories[e.category]['title']}
                          onClick={() => (this.props.history.push("/product/" + e.id))}>
                     {e.title}
                 </UI.Cell>

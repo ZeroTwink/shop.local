@@ -438,7 +438,7 @@ class Info extends Component {
                                             {product['city_title']}
                                         </UI.InfoRow>
                                     </UI.Cell>
-                                    <UI.Cell>
+                                    <UI.Cell multiline>
                                         <UI.InfoRow title="Вид товара">
                                             {categories[product.category]['title'] + " / " +
                                             categories[product.category]["sub"][product.subcategory]['title']}

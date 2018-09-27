@@ -191,7 +191,7 @@ class Filters extends Component {
                                  <div style={{color: "#fff"}}>{e.price} ₽</div>
                              </div>
                          }
-                         description="Компьютеры"
+                         description={categories[e.category]['title']}
                          onClick={() => (this.props.history.push("/product/" + e.id))}>
                     {e.title}
                 </UI.Cell>

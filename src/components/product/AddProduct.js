@@ -31,8 +31,6 @@ class AddProduct extends Component {
 
 
     componentDidMount() {
-        this.formData = new FormData();
-
         if(this.props.addProduct.arrImagesLoad.length) {
             return;
         }
@@ -171,6 +169,8 @@ class AddProduct extends Component {
     submitForm() {
         this.props.setPopout(<UI.ScreenSpinner />);
 
+        this.formData = new FormData();
+
         for(let i = 0; i < 5; i++) {
             if(this.props.addProduct.arrImagesLoad[i]['file'] !== null) {
                 this.formData.append('img[]', this.props.addProduct.arrImagesLoad[i]['file']);
@@ -282,6 +282,22 @@ class AddProduct extends Component {
 
             this.props.gdsUpdate({
                 "gds_new": gdsNew
+            });
+
+
+            let arr = [];
+            for(let i = 0; i < 5; i++) {
+                let data = {
+                    image: null,
+                    file: null
+                };
+                arr.push(data);
+            }
+            this.props.setValues({
+                descriptionInputValue: "",
+                titleInputValue: "",
+                priceInputValue: "",
+                arrImagesLoad: arr
             });
 
             this.props.history.replace("/product/" + response.data.response["product"]['id']);

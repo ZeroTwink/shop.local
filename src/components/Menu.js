@@ -68,10 +68,10 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/filters"))}>
                             Фильтры (поиск)
                         </UI.Cell>
-                        <UI.Cell before={<Icon24Settings/>}
-                                 onClick={() => (this.props.history.push("/product/1"))}>
-                            Настройки
-                        </UI.Cell>
+                        {/*<UI.Cell before={<Icon24Settings/>}*/}
+                                 {/*onClick={() => (this.props.history.push("/product/1"))}>*/}
+                            {/*Настройки*/}
+                        {/*</UI.Cell>*/}
                     </UI.List>
                 </UI.Group>
 

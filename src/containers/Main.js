@@ -4,6 +4,8 @@ import * as UI from '@vkontakte/vkui';
 
 import GalleryItem from '../components/Main/GalleryItem';
 
+import categories from '../utils/categories';
+
 import '@vkontakte/vkui/dist/vkui.css';
 
 import * as sysActions from '../actions/sys';
@@ -59,7 +61,7 @@ class Main extends Component {
                     </UI.Group>
 
                     <UI.Group style={{ paddingBottom: 16 }}>
-                        <UI.Header level="2" aside={<UI.Link>Показать все</UI.Link>}>
+                        <UI.Header level="2">
                             Рекомендуемые
                         </UI.Header>
                         <UI.HorizontalScroll>
@@ -93,7 +95,8 @@ class Main extends Component {
                     </UI.Group>
 
                     <UI.Group>
-                        <UI.Header level="2" aside={<UI.Link>Показать все</UI.Link>}>
+                        <UI.Header level="2" aside={<UI.Link
+                            onClick={() => (this.props.history.push("/all/new"))}>Показать все</UI.Link>}>
                             НОВЫЕ ТОВАРЫ
                         </UI.Header>
                         <UI.List className="new_gds">
@@ -122,7 +125,7 @@ class Main extends Component {
                                                      <div style={{color: "#fff"}}>{e.price} ₽</div>
                                                  </div>
                                              }
-                                             description="Компьютеры"
+                                             description={categories[e.category]['title']}
                                              onClick={() => (this.props.history.push("/product/" + e.id))}>
                                         {e.title}
                                     </UI.Cell>

@@ -15,6 +15,7 @@ import Menu from './Menu';
 import GdsUserId from './GdsUserId';
 import Favorites from './Favorites';
 import About from './About';
+import All from './All';
 
 import * as sysActions from '../actions/sys';
 
@@ -90,6 +91,7 @@ class App extends Component {
                         <Favorites id="favorites" {...this.props}/>
                         <Filters id="filters" {...this.props}/>
                         <About id="about" {...this.props}/>
+                        <All id="all" {...this.props}/>
                     </UI.View>
 
                     <UI.View id="choose" activePanel={this.props['sys']['active']['panel']}>

@@ -1,44 +1,35 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import axios from '../utils/axios';
 import * as UI from '@vkontakte/vkui';
-import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
-import Icon24Back from '@vkontakte/icons/dist/24/back';
+
+import axios from '../utils/axios';
 
 import categories from '../utils/categories';
 
-import '@vkontakte/vkui/dist/vkui.css';
+import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
+import Icon24Back from '@vkontakte/icons/dist/24/back';
 
 import InfiniteScroll from 'react-infinite-scroll-component';
 
-
-class Info extends Component {
+class All extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             gds: [],
-            hasMore: true,
-            requestSend: false
+            hasMore: true
         };
 
         this.page = 0;
     }
 
+
     componentDidMount() {
-        this.loadNextItems();
+
     }
 
     loadNextItems() {
-        if(this.state.requestSend) {
-            return;
-        }
-
-        this.setState({
-            requestSend: true
-        });
-
-        axios.get("/api/gds_user_id.php", {
+        axios.get("/api/all.php", {
             params: {
                 id: this.props.match.params.pId,
                 page: this.page
@@ -46,8 +37,7 @@ class Info extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMove: !res.data.response.gds.length,
-                requestSend: false
+                hasMore: res.data.response.gds.length? true : false
             });
 
             this.page++;
@@ -56,10 +46,8 @@ class Info extends Component {
         });
     }
 
-
     render() {
         const osname = UI.platform();
-
 
         let items = [];
         this.state.gds.map((e, i) => {
@@ -102,38 +90,19 @@ class Info extends Component {
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    Объявления
+                    Новые
                 </UI.PanelHeader>
 
                 <UI.Group>
-                    <UI.Cell
-                        size="l"
-                        description="Продавец"
-                        before={<UI.Avatar size={40} src={this.props.vk.user['photo_100']}/>}
-                    >
-                        {this.props.vk.user['first_name'] + " " + this.props.vk.user['last_name']}
-                    </UI.Cell>
-                </UI.Group>
-
-                <UI.Group>
+                    <UI.Header level="2">
+                        НОВЫЕ ТОВАРЫ
+                    </UI.Header>
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
                             next={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}
-                            refreshFunction={this.loadNextItems.bind(this)}
-                            pullDownToRefresh
-                            pullDownToRefreshContent={
-                                <div className="pull_down">
-                                    <div className="img_one" />
-                                </div>
-                            }
-                            releaseToRefreshContent={
-                                <div className="pull_down">
-                                    <div className="img_two" />
-                                </div>
-                            }>
-                            {items.length? items : (<div className="message_empty">Нет объявлений</div>)}
+                            hasMore={this.state.hasMore}>
+                            {items.length? items : (<div className="message_empty">Нет результатов</div>)}
                         </InfiniteScroll>
                     </UI.List>
                 </UI.Group>
@@ -145,9 +114,8 @@ class Info extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        gds: state.gds,
         vk: state.vk
     }
 }
 
-export default connect(mapStateToProps)(Info);
+export default connect(mapStateToProps)(All);
