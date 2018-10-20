@@ -9,7 +9,10 @@ import categories from '../utils/categories';
 
 import '@vkontakte/vkui/dist/vkui.css';
 
-import InfiniteScroll from 'react-infinite-scroll-component';
+// import InfiniteScroll from 'react-infinite-scroll-component';
+
+import InfiniteScroll from './InfiniteScroll';
+import * as vkActions from "../actions/vk";
 
 
 class Info extends Component {
@@ -19,7 +22,7 @@ class Info extends Component {
         this.state = {
             gds: [],
             hasMore: true,
-            requestSend: false
+            seller: {}
         };
 
         this.page = 0;
@@ -27,17 +30,24 @@ class Info extends Component {
 
     componentDidMount() {
         this.loadNextItems();
-    }
 
-    loadNextItems() {
-        if(this.state.requestSend) {
+        if(+this.props.vk.user.id === +this.props.match.params['pId']) {
+            this.setState({
+                seller: this.props.vk.user
+            });
+
             return;
         }
 
-        this.setState({
-            requestSend: true
+        let params = {user_ids: this.props.match.params['pId'], fields: "photo_50,photo_100,city"};
+        vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+            this.setState({
+                seller: res[0]
+            });
         });
+    }
 
+    loadNextItems() {
         axios.get("/api/gds_user_id.php", {
             params: {
                 id: this.props.match.params.pId,
@@ -46,8 +56,7 @@ class Info extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMove: !res.data.response.gds.length,
-                requestSend: false
+                hasMore: res.data.response.gds.length? true : false
             });
 
             this.page++;
@@ -109,9 +118,9 @@ class Info extends Component {
                     <UI.Cell
                         size="l"
                         description="Продавец"
-                        before={<UI.Avatar size={40} src={this.props.vk.user['photo_100']}/>}
+                        before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
                     >
-                        {this.props.vk.user['first_name'] + " " + this.props.vk.user['last_name']}
+                        {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
                     </UI.Cell>
                 </UI.Group>
 
@@ -119,20 +128,11 @@ class Info extends Component {
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
-                            next={this.loadNextItems.bind(this)}
+                            loadMore={this.loadNextItems.bind(this)}
                             hasMore={this.state.hasMore}
-                            refreshFunction={this.loadNextItems.bind(this)}
-                            pullDownToRefresh
-                            pullDownToRefreshContent={
-                                <div className="pull_down">
-                                    <div className="img_one" />
-                                </div>
-                            }
-                            releaseToRefreshContent={
-                                <div className="pull_down">
-                                    <div className="img_two" />
-                                </div>
-                            }>
+                            loader={<div className="loader_infinite_scroll">
+                                Загрузка...
+                            </div>}>
                             {items.length? items : (<div className="message_empty">Нет объявлений</div>)}
                         </InfiniteScroll>
                     </UI.List>

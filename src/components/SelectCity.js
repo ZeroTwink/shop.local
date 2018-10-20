@@ -73,7 +73,7 @@ class SelectCity extends Component {
     }
 
     getSelectedCityId() {
-        let id = 1;
+        let id = 0;
 
         if(this.props.vk.user['city']) {
             id = this.props.vk.user['city']['id'];

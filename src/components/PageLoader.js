@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 
+import * as UI from '@vkontakte/vkui';
+
 import axios from '../utils/axios';
 
 import * as types from '../actions/types/vkActionTypes';
@@ -19,6 +21,7 @@ class PageLoader extends Component {
 
         this.state = {
             accessToken: "",
+            accessTokenFailed: "",
             user: {}
         };
     }
@@ -47,11 +50,16 @@ class PageLoader extends Component {
 
             if("VKWebAppAccessTokenFailed" === type) {
                 this.setState({
-                    accessToken: data
+                    accessTokenFailed: data
                 });
             }
         };
 
+        this.setState({
+            accessTokenFailed: ""
+        });
+
+        VKConnect.unsubscribe(clb);
         VKConnect.subscribe(clb);
 
         this.props.initApp();
@@ -78,36 +86,36 @@ class PageLoader extends Component {
             }
         };
 
-
-
         VKConnect.subscribe(clb);
 
-        VKConnect.send('VKWebAppGetUserInfo', {'app_id': 6689902, "scope": "offline"});
+        VKConnect.send('VKWebAppGetUserInfo', {});
     }
 
     step3() {
-        let countLoaders = 0;
-
-        let goToMain = () => {
-            countLoaders++;
-
-            if(countLoaders >= 2) {
-                if(this.props.sys.refresh) {
-                    this.props.history.replace("/main");
-
-                    // this.props.setRefresh("");
-
-                    return;
-                }
-
-                // TODO Это чисто чтобы можно было назат вернутся при разработке, оставить replace, а push убрать
-                if(process.env.NODE_ENV === 'production') {
-                    this.props.history.replace("/main");
-                } else {
-                    this.props.history.push("/main");
-                }
-            }
-        };
+        // let countLoaders = 0;
+        //
+        // let goToMain = () => {
+        //     countLoaders++;
+        //
+        //     if(countLoaders >= 2) {
+        //         // if(this.props.sys.refresh) {
+        //         //     this.props.history.replace("/main");
+        //         //
+        //         //     // this.props.setRefresh("");
+        //         //
+        //         //     return;
+        //         // }
+        //         //
+        //         // // TODO Это чисто чтобы можно было назат вернутся при разработке, оставить replace, а push убрать
+        //         // if(process.env.NODE_ENV === 'production') {
+        //         //     this.props.history.replace("/main");
+        //         // } else {
+        //         //     this.props.history.push("/main");
+        //         // }
+        //
+        //         this.props.history.replace("/main");
+        //     }
+        // };
 
         axios.defaults.params = {
             viewer_id: this.state.user.id,
@@ -125,33 +133,68 @@ class PageLoader extends Component {
         axios.get("/api/first_request.php", {
             params: params
         }).then(res => {
-            this.props.gdsLoad(res.data.response);
+            this.props.gdsLoad({
+                gds_new: res.data.response['gds_new'],
+                gds_city: res.data.response['gds_city']
+            });
 
-            goToMain();
-        }).catch(error => {
-            console.log(error);
-        });
-
-        axios.get("/api/get_user.php").then(res => {
             res.data.response.user['favorites'] = res.data.response.user['favorites'].split(",");
 
             this.props.userLoad(res.data.response.user);
 
-            goToMain();
+            this.props.history.replace("/main");
+
+            // goToMain();
         }).catch(error => {
             console.log(error);
         });
+
+        // axios.get("/api/get_user.php").then(res => {
+        //     res.data.response.user['favorites'] = res.data.response.user['favorites'].split(",");
+        //
+        //     this.props.userLoad(res.data.response.user);
+        //
+        //     goToMain();
+        // }).catch(error => {
+        //     console.log(error);
+        // });
     }
 
     render() {
         return (
             <div>
-                <div id="world_load">
-                    {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
-                    {/*{this.state.accessToken? JSON.stringify(this.state.accessToken) : null}*/}
-                    {/*</div>*/}
-                    <div className="img" />
-                </div>
+                {this.state.accessTokenFailed? (
+                    <UI.View>
+                        <UI.Panel>
+                            <UI.PanelHeader>
+                                Ваш аккаунт
+                            </UI.PanelHeader>
+                            <UI.Group>
+                                <UI.Div style={{textAlign: "center"}}>
+                                    Чтобы получить доступ к личнему кабинету вам необходимо подтверлить аккаунт
+                                    <br /><br />
+                                    Для этого нажмите на кнопку "Подтвердить аккаунт" и разрешите приложению
+                                    получить информацию о вас
+                                    {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
+                                    {/*/!*{JSON.stringify(this.state.accessTokenFailed)}*!/*/}
+                                    {/*{JSON.stringify(window.location)}*/}
+                                    {/*</div>*/}
+                                    <br /><br />
+                                    <UI.Button onClick={this.step1.bind(this)} level="buy" size="xl">
+                                        Подтвердить аккаунт
+                                    </UI.Button>
+                                </UI.Div>
+                            </UI.Group>
+                        </UI.Panel>
+                    </UI.View>
+                ) : (
+                    <div id="world_load">
+                        {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
+                        {/*{this.state.accessToken? JSON.stringify(this.state.accessToken) : null}*/}
+                        {/*</div>*/}
+                        <div className="img" />
+                    </div>
+                )}
             </div>
         );
     }

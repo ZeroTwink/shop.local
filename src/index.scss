@@ -1,86 +1,86 @@
-.PanelHeader-bg--brand {
-  background: #4CAF50;
-}
-
-.PanelHeader-content--brand, .PanelHeader-left-in--brand, .PanelHeader-addon--brand, .PanelHeader-right--brand {
-  background-color: #4CAF50;
-}
-
-.Search--android.Search--default .Search__container {
-  background-color: #fff;
-}
-.Search--android.Search--default .Search__input {
-  color: #373737;
-}
-
-
-.Tabs--android.Tabs--light .TabsItem--selected {
-  color: #4CAF50;
-}
-
-.Tabs--android.Tabs--light .TabsItem--selected::after {
-  background-color: #4CAF50;
-}
-
-.Link {
-  color: #4CAF50;
-  text-decoration: none;
-}
-
-.Search--android {
-  background: #4CAF50;
-}
-
-.Search--ios.Search--header {
-  background: #4CAF50;
-}
-
-.Search--ios.Search--header .Search__after::before {
-  background-color: #4CAF50;
-}
-
-.Search--ios.Search--header .Search__after::after {
-  background-color: #1b711b;
-}
-
-.Search--ios.Search--header .Search__control {
-  background-color: #1b711b;
-}
-.Search--ios.Search--header .Search__after-width {
-  background: #1b711b;
-  color: #1b711b;
-}
-.Search--ios.Search--header .Search__after {
-  background: #4CAF50;
-}
-
-
-.Input-underline::before, .Select-underline::before, .Textarea-underline::before {
-  background: #4CAF50;
-}
-.Input--ios .Input__el:focus {
-  border-color: #4CAF50;
-}
-
-
-
-.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon {
-  border-color: #4CAF50;
-}
-.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon::after {
-  background-color: #4CAF50;
-}
-.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon {
-  border-color: #4CAF50;
-}
-.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon::after {
-  background-color: #4CAF50;
-}
-
-
-.Slider__dragger::before {
-  background: #4CAF50;
-}
+//.PanelHeader-bg--brand {
+//  background: #4CAF50;
+//}
+//
+//.PanelHeader-content--brand, .PanelHeader-left-in--brand, .PanelHeader-addon--brand, .PanelHeader-right--brand {
+//  background-color: #4CAF50;
+//}
+//
+//.Search--android.Search--default .Search__container {
+//  background-color: #fff;
+//}
+//.Search--android.Search--default .Search__input {
+//  color: #373737;
+//}
+//
+//
+//.Tabs--android.Tabs--light .TabsItem--selected {
+//  color: #4CAF50;
+//}
+//
+//.Tabs--android.Tabs--light .TabsItem--selected::after {
+//  background-color: #4CAF50;
+//}
+//
+//.Link {
+//  color: #4CAF50;
+//  text-decoration: none;
+//}
+//
+//.Search--android {
+//  background: #4CAF50;
+//}
+//
+//.Search--ios.Search--header {
+//  background: #4CAF50;
+//}
+//
+//.Search--ios.Search--header .Search__after::before {
+//  background-color: #4CAF50;
+//}
+//
+//.Search--ios.Search--header .Search__after::after {
+//  background-color: #1b711b;
+//}
+//
+//.Search--ios.Search--header .Search__control {
+//  background-color: #1b711b;
+//}
+//.Search--ios.Search--header .Search__after-width {
+//  background: #1b711b;
+//  color: #1b711b;
+//}
+//.Search--ios.Search--header .Search__after {
+//  background: #4CAF50;
+//}
+//
+//
+//.Input-underline::before, .Select-underline::before, .Textarea-underline::before {
+//  background: #4CAF50;
+//}
+//.Input--ios .Input__el:focus {
+//  border-color: #4CAF50;
+//}
+//
+//
+//
+//.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon {
+//  border-color: #4CAF50;
+//}
+//.Radio--android .Radio__input:checked ~ .Radio__container .Radio__icon::after {
+//  background-color: #4CAF50;
+//}
+//.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon {
+//  border-color: #4CAF50;
+//}
+//.Radio--ios .Radio__input:checked ~ .Radio__container .Radio__icon::after {
+//  background-color: #4CAF50;
+//}
+//
+//
+//.Slider__dragger::before {
+//  background: #4CAF50;
+//}
 
 
 img {
@@ -116,6 +116,16 @@ img.center {
   color: #8f8f8f;
 }
 
+
+.loader_infinite_scroll {
+  width: 80%;
+  padding: 5px 2px;
+  text-align: center;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  transform: translateX(10%);
+  background-color: #e0eaf5;
+}
 
 #wrapper {
   position: relative;

@@ -12,7 +12,11 @@ import * as filtersActions from '../actions/filters';
 
 import categories from '../utils/categories';
 
-import InfiniteScroll from 'react-infinite-scroll-component';
+import getCurrencyCode from '../helpers/getCurrencyCode';
+
+// import InfiniteScroll from 'react-infinite-scroll-component';
+
+import InfiniteScroll from '../components/InfiniteScroll';
 
 class Filters extends Component {
     constructor(props) {
@@ -131,7 +135,7 @@ class Filters extends Component {
 
         this.page = 0;
 
-        // this.loadNextItems();
+        this.loadNextItems();
     }
 
     loadNextItems() {
@@ -186,11 +190,14 @@ class Filters extends Component {
             items.push(
                 <UI.Cell key={e.id}
                          before={<UI.Avatar type="image" style={style} size={64} />}
-                         asideContent={
+                         bottomContent={
                              <div className="price" style={{color: UI.colors.blue}}>
-                                 <div style={{color: "#fff"}}>{e.price} ₽</div>
+                                 <div style={{color: "#fff"}}>
+                                     {e.price + " " + getCurrencyCode(this.getSelectedCountry()['id'])}
+                                 </div>
                              </div>
                          }
+                         size="l"
                          description={categories[e.category]['title']}
                          onClick={() => (this.props.history.push("/product/" + e.id))}>
                     {e.title}
@@ -202,7 +209,7 @@ class Filters extends Component {
 
         return (
             <UI.Panel id={this.props.id}>
-                <UI.PanelHeader
+                <UI.PanelHeader noShadow
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
@@ -282,8 +289,11 @@ class Filters extends Component {
                         <UI.List className="new_gds">
                             <InfiniteScroll
                                 dataLength={items.length}
-                                next={this.loadNextItems.bind(this)}
-                                hasMore={this.state.hasMore}>
+                                loadMore={this.loadNextItems.bind(this)}
+                                hasMore={this.state.hasMore}
+                                loader={<div className="loader_infinite_scroll">
+                                    Загрузка...
+                                </div>}>
                                 {items.length? items : (<div className="message_empty">Поиск не дал резултатов</div>)}
                             </InfiniteScroll>
                         </UI.List>

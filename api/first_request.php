@@ -31,3 +31,5 @@ if(!$gds_city) {
 }
 
 $api->assign("gds_city", $gds_city);
+
+$api->assign("user", $user->getUser());
