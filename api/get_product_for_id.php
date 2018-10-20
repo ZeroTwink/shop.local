@@ -2,15 +2,20 @@
 include_once('../sys/inc/start.php');
 $api = new API();
 
-if(!isset($_GET['id'])) {
-    exit;
-}
-$id = (int)$_GET['id'];
-
 $error = [
     "type" => 0,
     "message" => ""
 ];
+
+if(!isset($_GET['id'])) {
+    $error = [
+        "type" => 2,
+        "message" => "Объявление удалено или еще не размещено"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+$id = (int)$_GET['id'];
 
 $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id` = ? LIMIT 1");
 $res->execute([$id]);
@@ -24,5 +29,7 @@ if(!$data) {
     $api->assign("error", $error);
     exit;
 }
+
+$res = Db::me()->query("UPDATE `gds` SET `views` = `views` + 1 WHERE `id` = $id");
 
 $api->assign("product", $data);

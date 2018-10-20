@@ -26,6 +26,8 @@ if(isset($_GET['type']) && $_GET['type'] == "add") {
     } else {
         $user->favorites = $user->favorites . "," . $id;
     }
+
+    $res = Db::me()->query("UPDATE `gds` SET `favorites` = `favorites` + 1 WHERE `id` = $id");
 }
 
 if(isset($_GET['type']) && $_GET['type'] == "remove") {
@@ -37,4 +39,6 @@ if(isset($_GET['type']) && $_GET['type'] == "remove") {
     unset($favorites[$key]);
 
     $user->favorites = join(",", $favorites);
+
+    $res = Db::me()->query("UPDATE `gds` SET `favorites` = `favorites` - 1 WHERE `id` = $id");
 }

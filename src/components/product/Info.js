@@ -15,6 +15,10 @@ import Icon24LogoVk from '@vkontakte/icons/dist/24/logo_vk';
 import Icon24Mention from '@vkontakte/icons/dist/24/mention';
 import Icon16Dropdown from '@vkontakte/icons/dist/16/dropdown';
 import Icon24Delete from '@vkontakte/icons/dist/24/delete';
+import Icon24LikeOutline from '@vkontakte/icons/dist/24/like_outline';
+import Icon24Like from '@vkontakte/icons/dist/24/like';
+
+import getCurrencyCode from '../../helpers/getCurrencyCode';
 
 import * as vkActions from '../../actions/vk';
 import * as userActions from '../../actions/user';
@@ -59,31 +63,53 @@ class Info extends Component {
             });
         }
 
+         // Поиск продукта в уже загружженных с сервера
+         // Загруженные в PageLoad компоненте
 
-        let params = {user_ids: "30333918", fields: "photo_50,city"};
-        vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
-            this.setState({
-                seller: res[0]
-            });
-        });
+        // let productForState = null;
+        // for (const key of Object.keys(this.props.gds)) {
+        //     productForState = this.props.gds[key].find((e) => (+e.id === +this.props.match.params.pId));
+        //
+        //     if(productForState !== null) {
+        //         break;
+        //     }
+        // }
+        //
+        // if(productForState) {
+        //     let params = {user_ids: productForState['id_vk'], fields: "photo_50,city"};
+        //     vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+        //         this.setState({
+        //             seller: res[0]
+        //         });
+        //     });
+        //
+        //     this.setState({
+        //         product: productForState,
+        //         waitLoadProduct: false
+        //     });
+        //
+        //     return;
+        // }
 
-        /**
-         * Поиск продукта в уже загружженных с сервера
-         * Загруженные в PageLoad компоненте
-         * @type {T|*|{}}
-         */
-        let productForState = null;
-        for (const key of Object.keys(this.props.gds)) {
-            productForState = this.props.gds[key].find((e) => (+e.id === +this.props.match.params.pId));
+        let isProductOpen = null;
+        for(let i = 0; i < this.props.gds.open.length; i++) {
+            if(+this.props.gds.open[i]['id'] === +this.props.match.params['pId']) {
+                isProductOpen = this.props.gds.open[i];
 
-            if(productForState !== null) {
                 break;
             }
         }
 
-        if(productForState) {
+        if(isProductOpen) {
+            let params = {user_ids: isProductOpen['id_vk'], fields: "photo_50,city"};
+            vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+                this.setState({
+                    seller: res[0]
+                });
+            });
+
             this.setState({
-                product: productForState,
+                product: isProductOpen,
                 waitLoadProduct: false
             });
 
@@ -92,7 +118,7 @@ class Info extends Component {
 
         axios.get("/api/get_product_for_id.php", {
             params: {
-                id: this.props.match.params.pId
+                id: this.props.match.params['pId']
             }
         }).then(res => {
             if(res.data.error) {
@@ -101,9 +127,23 @@ class Info extends Component {
                 return;
             }
 
+            let params = {user_ids: res.data.response.product['id_vk'], fields: "photo_50,city"};
+            vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+                this.setState({
+                    seller: res[0]
+                });
+            });
+
             this.setState({
                 product: res.data.response.product,
                 waitLoadProduct: false
+            });
+
+            let gdsOpen = [...this.props.gds['open']];
+            gdsOpen.push(res.data.response.product);
+
+            this.props.gdsUpdate({
+                "open": gdsOpen
             });
         }).catch(error => {
             console.log(error);
@@ -340,14 +380,14 @@ class Info extends Component {
                                 <div key={i} className="img_gallery" style={style}>
                                     <div className="price_product_img_wrap">
                                         <UI.Tooltip
-                                            text="Цена на продоваймы товар"
+                                            text="Цена на товар"
                                             isShown={this.state.tooltipPrice}
                                             onClose={() => this.setState({ tooltipPrice: false })}
                                             offsetX={10}
                                         >
                                             <div className="price_product_img"
                                                  onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
-                                                {product["price"]} ₽
+                                                {product["price"] + " " + getCurrencyCode(product['country_id'])}
                                             </div>
                                         </UI.Tooltip>
                                     </div>
@@ -371,7 +411,7 @@ class Info extends Component {
                         <UI.Button
                             onClick={this.toggleFavorites.bind(this)}
                             level={this.state.addedToFavorites? "2" : "buy"}
-                            size="xl">
+                            size="xl" before={this.state.addedToFavorites? <Icon24Like fill={UI.colors.red_light}/> : <Icon24LikeOutline/>}>
                             {this.state.addedToFavorites? "Убрать из избранного" : "В избранное"}
                         </UI.Button>
                     </UI.Div>
@@ -406,15 +446,15 @@ class Info extends Component {
                                     </UI.Cell>
                                     <UI.Cell asideContent={
                                         <UI.Tooltip
-                                            text="Состояние товара: Б/у или новый. Та же состояние оценино
-                                            по пяти балльной системе. У новых товаров всего 5 баллов"
+                                            text="Состояние товара: Б/у оценивает продавец по 5 бальной системе.
+                                            У новых товаров всегда 5 баллов"
                                             isShown={this.state.tooltipHelp}
                                             onClose={() => this.setState({ tooltipHelp: false })}
                                             offsetX={16}
                                             offsetY={10}
                                             alignX="right"
                                         >
-                                            <Icon24helpOutline fill="#4CAF50"
+                                            <Icon24helpOutline fill={UI.colors.blue_400}
                                                                onClick={() => this.setState({
                                                                    tooltipHelp: !this.state.tooltipHelp
                                                                })} />
@@ -440,8 +480,19 @@ class Info extends Component {
                                     </UI.Cell>
                                     <UI.Cell multiline>
                                         <UI.InfoRow title="Вид товара">
-                                            {categories[product.category]['title'] + " / " +
-                                            categories[product.category]["sub"][product.subcategory]['title']}
+                                            <div style={{display: "inline-block",
+                                                background: "#ebf1f5",
+                                                borderRadius: 4,
+                                                margin: "4px 8px 4px 0",
+                                                padding: "4px 8px"}}>
+                                                {categories[product.category]['title']}
+                                            </div>
+                                            <div style={{display: "inline-block",
+                                                background: "#ebf1f5",
+                                                borderRadius: 4,
+                                                padding: "4px 8px"}}>
+                                                {categories[product.category]["sub"][product.subcategory]['title']}
+                                            </div>
                                         </UI.InfoRow>
                                     </UI.Cell>
                                     <UI.Cell multiline>
@@ -461,26 +512,26 @@ class Info extends Component {
                                     {product['phone_number']? (
                                         <CopyToClipboard text={product['phone_number']}>
                                             <UI.Cell onClick={this.displayToasts.bind(this, "Номер скопирован")}
-                                                     before={<Icon24Phone fill="#4CAF50"/>}
-                                                     asideContent={<Icon24Copy fill="#4CAF50"/>}>
+                                                     before={<Icon24Phone fill={UI.colors.azure_A400}/>}
+                                                     asideContent={<Icon24Copy/>}>
                                                 {product['phone_number']}
                                             </UI.Cell>
                                         </CopyToClipboard>
                                     ) : (
-                                        <UI.Cell before={<Icon24Phone fill="#4CAF50"/>}>
+                                        <UI.Cell before={<Icon24Phone/>}>
                                             Не указан
                                         </UI.Cell>
                                     )}
                                     {product['email']? (
                                         <CopyToClipboard text={product['email']}>
                                             <UI.Cell onClick={this.displayToasts.bind(this, "E-mail скопирован")}
-                                                     before={<Icon24Mention fill="#4CAF50"/>}
-                                                     asideContent={<Icon24Copy fill="#4CAF50"/>}>
+                                                     before={<Icon24Mention fill={UI.colors.azure_A400}/>}
+                                                     asideContent={<Icon24Copy/>}>
                                                 {product['email']}
                                             </UI.Cell>
                                         </CopyToClipboard>
                                     ) : (
-                                        <UI.Cell before={<Icon24Mention fill="#4CAF50"/>}>
+                                        <UI.Cell before={<Icon24Mention/>}>
                                             Не указан
                                         </UI.Cell>
                                     )}
@@ -489,7 +540,7 @@ class Info extends Component {
                                 <UI.Div>
                                     <UI.Link style={{color: "#fff"}}
                                              href={"https://vk.com/im?sel=" + this.state.seller['id']}>
-                                        <UI.Button before={<Icon24LogoVk fill="#fff"/>} level="buy" size="xl">
+                                        <UI.Button before={<Icon24LogoVk fill="#fff"/>} size="xl">
                                             Написать продавцу
                                         </UI.Button>
                                     </UI.Link>
@@ -500,7 +551,7 @@ class Info extends Component {
                 </UI.Group>
 
                 <UI.Group>
-                    <UI.Cell before={<Icon24LinkCircle fill="#4CAF50"/>}
+                    <UI.Cell before={<Icon24LinkCircle/>}
                              onClick={() => (this.props.history.push("/gds_user_id/" + product['id_vk']))}>
                         <UI.Link>Все объявления продавца</UI.Link>
                     </UI.Cell>
@@ -509,7 +560,7 @@ class Info extends Component {
                 <UI.Group>
                     <CopyToClipboard text={"https://vk.com/app6689902#product/" + this.props.match.params.pId}>
                         <UI.Cell onClick={this.displayToasts.bind(this, "Ссылка скопирована")}
-                                 before={<Icon24Copy fill="#4CAF50"/>}>
+                                 before={<Icon24Copy/>}>
                             <UI.Link>Копировать ссылку объявления</UI.Link>
                         </UI.Cell>
                     </CopyToClipboard>

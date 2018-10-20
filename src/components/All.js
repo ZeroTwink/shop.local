@@ -9,7 +9,11 @@ import categories from '../utils/categories';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
-import InfiniteScroll from 'react-infinite-scroll-component';
+// import InfiniteScroll from 'react-infinite-scroll-component';
+
+import InfiniteScroll from '../components/InfiniteScroll';
+
+import getCurrencyCode from '../helpers/getCurrencyCode';
 
 class All extends Component {
     constructor(props) {
@@ -25,7 +29,7 @@ class All extends Component {
 
 
     componentDidMount() {
-
+        this.loadNextItems();
     }
 
     loadNextItems() {
@@ -41,6 +45,7 @@ class All extends Component {
             });
 
             this.page++;
+
         }).catch(error => {
             console.log(error);
         });
@@ -70,11 +75,14 @@ class All extends Component {
             items.push(
                 <UI.Cell key={e.id}
                          before={<UI.Avatar type="image" style={style} size={64} />}
-                         asideContent={
+                         bottomContent={
                              <div className="price" style={{color: UI.colors.blue}}>
-                                 <div style={{color: "#fff"}}>{e.price} ₽</div>
+                                 <div style={{color: "#fff"}}>
+                                     {e.price + " " + getCurrencyCode(e.country_id)}
+                                 </div>
                              </div>
                          }
+                         size="l"
                          description={categories[e.category]['title']}
                          onClick={() => (this.props.history.push("/product/" + e.id))}>
                     {e.title}
@@ -100,9 +108,12 @@ class All extends Component {
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
-                            next={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}>
-                            {items.length? items : (<div className="message_empty">Нет результатов</div>)}
+                            loadMore={this.loadNextItems.bind(this)}
+                            hasMore={this.state.hasMore}
+                            loader={<div className="loader_infinite_scroll">
+                                Загрузка...
+                            </div>}>
+                            {items}
                         </InfiniteScroll>
                     </UI.List>
                 </UI.Group>

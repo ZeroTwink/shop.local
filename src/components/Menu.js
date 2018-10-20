@@ -43,7 +43,7 @@ class Menu extends Component {
                 <UI.Group>
                     <UI.Cell
                         size="l"
-                        description="Это вы"
+                        description="Покупатель / Продавец"
                         before={<UI.Avatar size={40} src={this.props.vk.user['photo_100']}/>}
                     >
                         {this.props.vk.user['first_name'] + " " + this.props.vk.user['last_name']}
@@ -87,7 +87,7 @@ class Menu extends Component {
                             </UI.Cell>
                         </UI.Link>
                         <UI.Cell before={<Icon24Help/>}
-                                 onClick={() => (this.props.history.push("/product/1"))}>
+                                 onClick={() => (this.props.history.push("/rules"))}>
                             Правила
                         </UI.Cell>
                     </UI.List>

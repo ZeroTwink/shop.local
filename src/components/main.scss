@@ -42,7 +42,7 @@
       border-radius: 3px;
       z-index: 2;
       color: #fff;
-      background-color: #4caf50;
+      background-color: var(--header_background);
     }
 
     .text {
@@ -59,10 +59,12 @@
 .new_gds {
 
   .price {
+    display: inline-block;
     padding: 2px 4px 0 4px;
+    font-size: 13px;
     font-weight: bold;
     border-radius: 3px;
-    background: #4caf50;
+    background: var(--header_background);
   }
 }
 
@@ -70,7 +72,7 @@
 
   .img_gallery_wrap {
     position: relative;
-    height: 170px;
+    height: 190px;
     background-position: center 50%;
     background-color: #cacaca;
 
@@ -102,7 +104,7 @@
       font-weight: bold;
       border-radius: 4px;
       color: #fff;
-      background-color: #4bb34b;
+      background-color: var(--header_background);
     }
   }
 }

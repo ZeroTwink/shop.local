@@ -7,7 +7,8 @@ import Icon24Back from '@vkontakte/icons/dist/24/back';
 
 import categories from '../utils/categories';
 
-import InfiniteScroll from 'react-infinite-scroll-component';
+// import InfiniteScroll from 'react-infinite-scroll-component';
+import InfiniteScroll from '../components/InfiniteScroll';
 
 
 class Favorites extends Component {
@@ -34,7 +35,7 @@ class Favorites extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMove: !res.data.response.gds.length
+                hasMore: res.data.response.gds.length? true : false
             });
 
             this.page++;
@@ -95,8 +96,11 @@ class Favorites extends Component {
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
-                            next={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}>
+                            loadMore={this.loadNextItems.bind(this)}
+                            hasMore={this.state.hasMore}
+                            loader={<div className="loader_infinite_scroll">
+                                Загрузка...
+                            </div>}>
                             {items.length? items : (<div className="message_empty">Нет объявлений</div>)}
                         </InfiniteScroll>
                     </UI.List>

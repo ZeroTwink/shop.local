@@ -5,7 +5,7 @@ import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
-class Filters extends Component {
+class About extends Component {
     constructor(props) {
         super(props);
 
@@ -68,4 +68,4 @@ function mapStateToProps(state) {
     }
 }
 
-export default connect(mapStateToProps)(Filters);
+export default connect(mapStateToProps)(About);

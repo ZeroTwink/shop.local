@@ -15,6 +15,8 @@ import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
 
+import getCurrencyCode from '../../helpers/getCurrencyCode';
+
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
 
@@ -343,14 +345,17 @@ class AddProduct extends Component {
     }
 
     getSelectedCountry() {
-        let country = "Россия";
+        let country = {
+            "id": 1,
+            "title": "Россия"
+        };
 
         if(this.props.vk.user['country']) {
-            country = this.props.vk.user['country']['title'];
+            country = this.props.vk.user['country'];
         }
 
         if(this.props.addProduct.country) {
-            country = this.props.addProduct.country.title
+            country = this.props.addProduct.country
         }
 
         return country;
@@ -417,10 +422,31 @@ class AddProduct extends Component {
                     Новое объявление
                 </UI.PanelHeader>
 
-                <UI.Group title="Новое объявление"
+                <UI.Group title="Геоданные">
+                    <UI.FormLayout>
+                        <UI.SelectMimicry
+                            top={<span>Страна <span style={{color: "#4CAF50"}}>*</span></span>}
+                            placeholder="Не выбрана"
+                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCountry"})}
+                        >
+                            {this.getSelectedCountry()['title']}
+                        </UI.SelectMimicry>
+
+                        <UI.SelectMimicry
+                            top={<span>Город <span style={{color: "#4CAF50"}}>*</span></span>}
+                            placeholder="Не выбран"
+                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCity"})}
+                        >
+                            {this.getSelectedCity()}
+                        </UI.SelectMimicry>
+                    </UI.FormLayout>
+                </UI.Group>
+
+                <UI.Group title="Информация"
                           description={<span>Поля отмеченные <span style={{color: "#4CAF50"}}>*</span> обязательны для заполнения</span>}>
                     <UI.FormLayout>
-                        <UI.Input type="number" top={<span>Цена ₽ <span style={{color: "#4CAF50"}}>*</span></span>}
+
+                        <UI.Input type="number" top={<span>Цена {getCurrencyCode(this.getSelectedCountry()["id"])} <span style={{color: "#4CAF50"}}>*</span></span>}
                                   defaultValue={this.props.addProduct.priceInputValue}
                                   onChange={this.onChangePrice.bind(this)} />
 
@@ -443,23 +469,7 @@ class AddProduct extends Component {
                             {this.getOptionSubcategory()}
                         </UI.Select>
 
-                        <UI.SelectMimicry
-                            top={<span>Страна <span style={{color: "#4CAF50"}}>*</span></span>}
-                            placeholder="Не выбрана"
-                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCountry"})}
-                        >
-                            {this.getSelectedCountry()}
-                        </UI.SelectMimicry>
-
-                        <UI.SelectMimicry
-                            top={<span>Город <span style={{color: "#4CAF50"}}>*</span></span>}
-                            placeholder="Не выбран"
-                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCity"})}
-                        >
-                            {this.getSelectedCity()}
-                        </UI.SelectMimicry>
-
-                        <div top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
+                        <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
                              onChange={this.onChangeStateProduct.bind(this)}>
                             <UI.Radio name="type" value="0"
                                       defaultChecked={!this.props.addProduct.stateProductInputValue}
@@ -467,10 +477,10 @@ class AddProduct extends Component {
                             <UI.Radio name="type" value="1"
                                       defaultChecked={this.props.addProduct.stateProductInputValue}
                                       description="Не разу не использовался">Новый</UI.Radio>
-                        </div>
+                        </UI.FormLayoutGroup>
 
                         {!this.props.addProduct.stateProductInputValue? (
-                            <div top="Оцека состояние">
+                            <UI.FormLayoutGroup top="Оцека состояние">
                                 <UI.Slider
                                     step={1}
                                     min={1}
@@ -483,7 +493,7 @@ class AddProduct extends Component {
                                            value={String(this.props.addProduct.stateBallsInputValue)}>
                                     {this.getOptionsSelect()}
                                 </UI.Select>
-                            </div>
+                            </UI.FormLayoutGroup>
                         ) : null}
 
                         <UI.File level="buy" name="img[]"
@@ -522,7 +532,7 @@ class AddProduct extends Component {
                     </UI.FormLayout>
                 </UI.Group>
 
-                <UI.Group title="Ваши контакты">
+                <UI.Group title="Контакты">
                     <UI.FormLayout>
                         <UI.Input type="email" top="E-mail"
                                   defaultValue={this.getEmail()}
