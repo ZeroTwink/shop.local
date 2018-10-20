@@ -117,6 +117,7 @@ class PageLoader extends Component {
         //     }
         // };
 
+
         axios.defaults.params = {
             viewer_id: this.state.user.id,
             access_token: this.state.accessToken
