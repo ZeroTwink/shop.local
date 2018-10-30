@@ -81,7 +81,7 @@ class InfiniteScroll extends Component {
 export default InfiniteScroll;
 
 InfiniteScroll.defaultProps = {
-    scrollThreshold: 180
+    scrollThreshold: 250
 };
 
 InfiniteScroll.propTypes = {

@@ -5,7 +5,6 @@ import Icon24Add from '@vkontakte/icons/dist/24/add';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24List from '@vkontakte/icons/dist/24/list';
-import Icon24Settings from '@vkontakte/icons/dist/24/settings';
 import Icon24Favorite from '@vkontakte/icons/dist/24/favorite';
 import Icon24About from '@vkontakte/icons/dist/24/about';
 import Icon24User from '@vkontakte/icons/dist/24/user';

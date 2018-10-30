@@ -14,9 +14,60 @@ header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, Access-Con
  */
 //$sys = SysConfig::getInstance();
 
-if(!isset($_GET['viewer_id']) || !isset($_GET['access_token'])) {
+//print_r($_SERVER);
+
+//$params = [];
+//parse_str($_SERVER['QUERY_STRING'], $params);
+//
+//$sign_string = API_SECRET;
+//foreach ($params as $name => $value) {
+//    if (strpos($name, 'vk_') !== 0 || $name == "vk_sign") {
+//        continue;
+//    }
+//    $sign_string .= $value;
+//}
+//
+//$sign = rtrim(strtr(base64_encode(hash('sha256', $sign_string, true)), '+/', '-_'), '=');
+//
+//echo $sign;
+
+
+if(!isset($_GET['viewer_id'])
+    || !isset($_GET['access_token'])
+    || !isset($_GET['signed_user_id'])
+    || empty($_GET['viewer_id'])
+    || empty($_GET['access_token'])) {
+    header('Content-Type: application/json; charset=utf-8', true);
+    $response = [];
+    $response['error'] = [
+        "type" => 1,
+        "message" => 'Ошибка авторизации'
+    ];
+
+    echo Json::encode($response);
     exit;
 }
+
+$signed_user_id = rtrim(
+    strtr(
+        base64_encode(
+            hash('sha256', API_ID . API_SECRET . $_GET['viewer_id'], true)
+        ), '+/', '-_'
+    ), '='
+);
+
+if ($_GET['signed_user_id'] != $signed_user_id) {
+    header('Content-Type: application/json; charset=utf-8', true);
+    $response = [];
+    $response['error'] = [
+        "type" => 1,
+        "message" => 'Ошибка авторизации'
+    ];
+
+    echo Json::encode($response);
+    exit;
+}
+
 
 $user = new User($_GET['viewer_id']);
 

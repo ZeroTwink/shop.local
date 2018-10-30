@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import * as UI from '@vkontakte/vkui';
 
 import axios from '../utils/axios';
+import $_GET from '../helpers/getParams';
 
 import * as types from '../actions/types/vkActionTypes';
 
@@ -24,11 +25,58 @@ class PageLoader extends Component {
             accessTokenFailed: "",
             user: {}
         };
+
+        console.log($_GET);
     }
 
     componentDidMount() {
+        this.props.initApp();
+
         this.step1();
     }
+
+    displayError(message) {
+        this.props.setPopout(
+            <UI.Alert
+                // actions={[{
+                //     title: 'OK',
+                //     autoclose: true,
+                //     style: 'destructive'
+                // }]}
+                onClose={() => this.props.setPopout(null)}
+            >
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Ошибка</div></h2>
+                <div style={{textAlign: "center"}}>{message}</div>
+            </UI.Alert>
+        );
+    }
+
+    // step0() {
+    //     let clb = (e) => {
+    //         let data = e.detail['data'];
+    //         let type = e.detail['type'];
+    //
+    //         if("VKWebAppGetClientVersionResult" === type) {
+    //
+    //             let version = data.version.match(/[0-9]+\.[0-9]+/)[0].split(".");
+    //
+    //             if((data.platform === 'android' && (+version[0] < 5 || +version[1] < 20))
+    //                 || (data.platform === 'ios' && +version[0] < 5)) {
+    //                 this.displayError("Для работы сервиса необходимо обновить официальное приложение VK");
+    //
+    //                 return false;
+    //             }
+    //
+    //             VKConnect.unsubscribe(clb);
+    //
+    //             this.step1();
+    //         }
+    //     };
+    //
+    //     VKConnect.subscribe(clb);
+    //
+    //     VKConnect.send('VKWebAppGetClientVersion', {});
+    // }
 
     step1() {
         let clb = (e) => {
@@ -62,8 +110,6 @@ class PageLoader extends Component {
         VKConnect.unsubscribe(clb);
         VKConnect.subscribe(clb);
 
-        this.props.initApp();
-
         VKConnect.send('VKWebAppGetAuthToken', {'app_id': '6689902'});
     }
 
@@ -73,6 +119,35 @@ class PageLoader extends Component {
             let type = e.detail['type'];
 
             if("VKWebAppGetUserInfoResult" === type) {
+
+                if(!data['signed_user_id']) {
+                    let el = (
+                        <div>
+                            Для работы сервиса необходимо обновить официальное приложение VK
+                            {UI.platform() === UI.IOS? (
+                                <UI.Group>
+                                    <UI.Link href="https://itunes.apple.com/ru/app/vk-app/id564177498?mt=8">
+                                        <UI.Div>
+                                            Вконтакте для IOS
+                                        </UI.Div>
+                                    </UI.Link>
+                                </UI.Group>
+                            ) : (
+                                <UI.Group>
+                                    <UI.Link href="https://play.google.com/store/apps/details?id=com.vkontakte.android">
+                                        <UI.Div>
+                                            Вконтакте для ANDROID
+                                        </UI.Div>
+                                    </UI.Link>
+                                </UI.Group>
+                            )}
+                        </div>
+                    );
+
+                    this.displayError(el);
+
+                    return false;
+                }
 
                 this.props.fetchUserInfo(data);
 
@@ -117,10 +192,11 @@ class PageLoader extends Component {
         //     }
         // };
 
-
         axios.defaults.params = {
             viewer_id: this.state.user.id,
-            access_token: this.state.accessToken
+            access_token: this.state.accessToken,
+            signed_user_id: this.state.user.signed_user_id? this.state.user.signed_user_id : "",
+            ...$_GET
         };
 
         let params = {};
@@ -131,12 +207,25 @@ class PageLoader extends Component {
             params["country_id"] = this.state.user.country.id;
         }
 
+        if(this.state.user.sex) {
+            params["sex"] = this.state.user.sex;
+        } else {
+            params["sex"] = 0;
+        }
+
         axios.get("/api/first_request.php", {
             params: params
         }).then(res => {
+            if(res.data.error) {
+                this.displayError(res.data.error.message);
+
+                return;
+            }
+
             this.props.gdsLoad({
                 gds_new: res.data.response['gds_new'],
-                gds_city: res.data.response['gds_city']
+                gds_city: res.data.response['gds_city'],
+                categories: res.data.response['categories'],
             });
 
             res.data.response.user['favorites'] = res.data.response.user['favorites'].split(",");
@@ -165,8 +254,8 @@ class PageLoader extends Component {
         return (
             <div>
                 {this.state.accessTokenFailed? (
-                    <UI.View>
-                        <UI.Panel>
+                    <UI.View activePanel="load">
+                        <UI.Panel id="load">
                             <UI.PanelHeader>
                                 Ваш аккаунт
                             </UI.PanelHeader>
@@ -176,25 +265,38 @@ class PageLoader extends Component {
                                     <br /><br />
                                     Для этого нажмите на кнопку "Подтвердить аккаунт" и разрешите приложению
                                     получить информацию о вас
-                                    {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
-                                    {/*/!*{JSON.stringify(this.state.accessTokenFailed)}*!/*/}
-                                    {/*{JSON.stringify(window.location)}*/}
-                                    {/*</div>*/}
                                     <br /><br />
                                     <UI.Button onClick={this.step1.bind(this)} level="buy" size="xl">
                                         Подтвердить аккаунт
                                     </UI.Button>
                                 </UI.Div>
                             </UI.Group>
+                            {/*<div style={{borderBottom: "1px solid #000"}}>*/}
+                                {/*Консоль*/}
+                            {/*</div>*/}
+                            {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
+                            {/*<pre>*/}
+                                {/*{JSON.stringify(this.state.accessTokenFailed, undefined, 2)}*/}
+                                {/*<div>*/}
+                                    {/*{JSON.stringify(window.location, undefined, 2)}*/}
+                                {/*</div>*/}
+                            {/*</pre>*/}
+                            {/*</div>*/}
                         </UI.Panel>
                     </UI.View>
                 ) : (
-                    <div id="world_load">
-                        {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
-                        {/*{this.state.accessToken? JSON.stringify(this.state.accessToken) : null}*/}
-                        {/*</div>*/}
-                        <div className="img" />
-                    </div>
+                    <UI.View activePanel="load" popout={this.props.sys.popout}>
+                        <UI.Panel id="load">
+                            <div style={{position: "absolute", top: 0, width: "100%", height: "100vh"}}>
+                            <div id="world_load">
+                                {/*<div style={{width: 300, wordWrap: "break-word"}}>*/}
+                                {/*{this.state.accessToken? JSON.stringify(this.state.accessToken) : null}*/}
+                                {/*</div>*/}
+                                <div className="img" />
+                            </div>
+                            </div>
+                        </UI.Panel>
+                    </UI.View>
                 )}
             </div>
         );
@@ -234,6 +336,9 @@ function mapDispatchToProps(dispatch) {
         },
         setRefresh: function (name) {
             dispatch(sysActions.setRefresh(name))
+        },
+        setPopout: function (name) {
+            dispatch(sysActions.setPopout(name))
         }
     }
 }

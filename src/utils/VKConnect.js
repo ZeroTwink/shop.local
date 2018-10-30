@@ -37,6 +37,7 @@ if(process.env.NODE_ENV === 'production') {
     res.VKWebAppGetUserInfo.data = {
         type: 'VKWebAppGetUserInfoResult',
         "data": {
+            "signed_user_id": "8XrKmfy5IswgzGx8aCpX8xGc2h72TOAwofr2CsQeyEg",
             "id": 30333918,
             "first_name": "Сергей",
             "last_name": "Качалка",

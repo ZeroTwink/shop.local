@@ -269,6 +269,8 @@ class Info extends Component {
     }
 
     onClickDeleteGds() {
+        this.props.setPopout(<UI.ScreenSpinner />);
+
         axios.get("/api/remove_product.php", {
             params: {
                 id: this.props.match.params.pId
@@ -301,8 +303,11 @@ class Info extends Component {
                 });
             }
 
+            this.props.setPopout(null);
+
             this.props.history.replace("/main");
         }).catch(error => {
+            this.props.setPopout(null);
             console.log(error);
         });
     }
@@ -320,11 +325,9 @@ class Info extends Component {
                     >
                         Товары
                     </UI.PanelHeader>
-                    <UI.Group>
-                        <UI.Div>
-                            Загрузка...
-                        </UI.Div>
-                    </UI.Group>
+                    <UI.Div>
+                        <UI.Spinner/>
+                    </UI.Div>
                 </UI.Panel>
             );
         }
@@ -395,7 +398,13 @@ class Info extends Component {
                             );
                         }) : (
                             <div className="img_gallery"
-                                 style={{backgroundImage: 'url(/images/no_photo_info.png)', backgroundSize: "cover"}} />
+                                 style={{backgroundImage: 'url(/images/no_photo_info.png)', backgroundSize: "cover"}}>
+                                <div className="price_product_img_wrap">
+                                    <div className="price_product_img">
+                                        {product["price"] + " " + getCurrencyCode(product['country_id'])}
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </UI.Gallery>
                 </UI.Group>

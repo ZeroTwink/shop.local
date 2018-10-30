@@ -282,8 +282,16 @@ class AddProduct extends Component {
             let gdsNew = [...this.props.gds['gds_new']];
             gdsNew.unshift(response.data.response["product"]);
 
+            let cats = null;
+            if(this.props.gds.categories[this.props.addProduct.category]) {
+                let cats = {...this.props.gds.categories};
+
+                cats[this.props.addProduct.category].unshift(response.data.response["product"]);
+            }
+
             this.props.gdsUpdate({
-                "gds_new": gdsNew
+                "gds_new": gdsNew,
+                "categories": cats? cats : this.props.gds.categories
             });
 
 

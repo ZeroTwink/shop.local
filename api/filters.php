@@ -12,7 +12,7 @@ if(count($search_array) > 4) {
 
 $words_search = [];
 $replace = [];
-$sorting = "`time` DESC";
+$sorting = "`id` DESC";
 
 for ($i = 0; $i < count($search_array); $i++) {
     $word = $search_array[$i];
@@ -67,6 +67,13 @@ if(isset($_GET['city_id']) && !empty($_GET['city_id']) && $_GET['city_id']) {
     $replace[] = $city_id;
 }
 
+if(isset($_GET['state']) && !empty($_GET['state'])) {
+    $state = (int)$_GET['state'];
+
+    $where[] = "`state` = ?";
+    $replace[] = $state;
+}
+
 if(isset($_GET['sorting']) && !empty($_GET['sorting'])) {
     $type_sorting = (int)$_GET['sorting'];
 
@@ -74,15 +81,30 @@ if(isset($_GET['sorting']) && !empty($_GET['sorting'])) {
         $sorting = "`price` ASC";
     } elseif($type_sorting == 2) {
         $sorting = "`price` DESC";
+    } elseif($type_sorting == 3) {
+        $sorting = "`id` DESC";
+        $sorting_two = "`tmp`.`price` ASC";
+    } elseif($type_sorting == 4) {
+        $sorting = "`id` DESC";
+        $sorting_two = "`tmp`.`price` DESC";
     }
 }
 
 $page = $_GET['page'];
 $offset = $page * 10;
 
-$res = Db::me()->prepare("SELECT * FROM `gds` 
-WHERE ".implode("AND ", $where)." ORDER BY $sorting LIMIT $offset, 10");
-$res->execute($replace);
-$search = $res->fetchAll();
+if(isset($sorting_two)) {
+    $res = Db::me()->prepare("
+      SELECT * FROM (SELECT * FROM `gds` 
+      WHERE ".implode("AND ", $where)." ORDER BY $sorting LIMIT 100
+    ) AS tmp ORDER BY $sorting_two");
+    $res->execute($replace);
+    $search = $res->fetchAll();
+} else {
+    $res = Db::me()->prepare("SELECT * FROM `gds` 
+    WHERE ".implode("AND ", $where)." ORDER BY $sorting LIMIT $offset, 10");
+    $res->execute($replace);
+    $search = $res->fetchAll();
+}
 
 $api->assign("gds", $search);

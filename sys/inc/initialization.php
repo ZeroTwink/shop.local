@@ -68,7 +68,7 @@ define('SESSION_LIFE_TIME', 600);
 /**
  * @const SESSION_NAME имя сессии
  */
-define('SESSION_NAME', 'ANIME_SESSION');
+define('SESSION_NAME', 'BOARD_SESSION');
 /**
  * @const SESSION_ID_USER ключ сессий, в котором хранится идентификатор пользователя
  */

@@ -6,6 +6,7 @@ import axios from '../utils/axios';
 
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
+import Icon24Cancel from '@vkontakte/icons/dist/24/cancel';
 
 import * as sysActions from '../actions/sys';
 import * as filtersActions from '../actions/filters';
@@ -122,6 +123,12 @@ class Filters extends Component {
         });
     }
 
+    onChangeState(e) {
+        this.props.setValues({
+            state: e.target.value
+        });
+    }
+
     submitForm(e) {
         e.preventDefault();
 
@@ -147,14 +154,20 @@ class Filters extends Component {
                 country_id: this.getSelectedCountry()['id'],
                 city_id: this.getSelectedCity()? this.getSelectedCity()['id'] : "",
                 search: this.props.filters.search,
+                state: this.props.filters.state,
                 page: this.page
             }
         }).then(res => {
             this.props.setPopout(null);
 
+            let hasMore = true;
+            if(+this.props.filters.sorting === 3 || +this.props.filters.sorting === 4 || !res.data.response.gds.length) {
+                hasMore = false;
+            }
+
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false
+                hasMore: hasMore
             });
 
             this.page++;
@@ -164,6 +177,26 @@ class Filters extends Component {
             this.props.setPopout(null);
         });
     }
+
+    clickHeaderButton() {
+        if(this.state.activeTab === 'filters') {
+            this.props.history.goBack();
+
+            return;
+        }
+
+        this.setState({
+            activeTab: 'filters'
+        });
+    }
+
+    iconHeader(osname) {
+        if(String(this.state.activeTab) === "result") {
+            return <Icon24Cancel/>;
+        }
+
+        return osname === UI.IOS ? <Icon28ChevronBack/> : <Icon24Back/>
+    };
 
 
     render() {
@@ -210,8 +243,9 @@ class Filters extends Component {
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader noShadow
-                    left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
-                        <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
+                    left={<UI.HeaderButton onClick={this.clickHeaderButton.bind(this)}>
+                        {this.iconHeader(osname)}
+                        </UI.HeaderButton>}
                 >
                     Фильтры
                 </UI.PanelHeader>
@@ -241,9 +275,11 @@ class Filters extends Component {
                             <UI.Select value={this.props.filters.sorting}
                                        onChange={this.onChangeSorting.bind(this)}
                                        top="Сортировка">
-                                <option key="0" value="0">Самые новые</option>
-                                <option key="1" value="1">Самые дешевые</option>
-                                <option key="2" value="2">Самые дорогие</option>
+                                <option key="0" value="0">Новые (по дате)</option>
+                                <option key="1" value="1">Сперва дешевле</option>
+                                <option key="2" value="2">Сперва дороже</option>
+                                <option key="3" value="3">Новые (по дате) - дешевле</option>
+                                <option key="4" value="4">Новые (по дате) - дороже</option>
                             </UI.Select>
 
                             <UI.Select value={this.props.filters.category}
@@ -262,6 +298,13 @@ class Filters extends Component {
                                         <option key={i} value={i}>{e.title}</option>
                                     ))
                                 ) : null}
+                            </UI.Select>
+
+                            <UI.Select value={this.props.filters.state}
+                                       onChange={this.onChangeState.bind(this)}
+                                       top="Состояние товара" placeholder="Показать все">
+                                <option key="0" value="0">Б/у</option>
+                                <option key="1" value="1">Новый</option>
                             </UI.Select>
 
                             <UI.SelectMimicry
@@ -291,9 +334,9 @@ class Filters extends Component {
                                 dataLength={items.length}
                                 loadMore={this.loadNextItems.bind(this)}
                                 hasMore={this.state.hasMore}
-                                loader={<div className="loader_infinite_scroll">
-                                    Загрузка...
-                                </div>}>
+                                loader={<UI.Div>
+                                    <UI.Spinner size={20} strokeWidth={2}/>
+                                </UI.Div>}>
                                 {items.length? items : (<div className="message_empty">Поиск не дал резултатов</div>)}
                             </InfiniteScroll>
                         </UI.List>

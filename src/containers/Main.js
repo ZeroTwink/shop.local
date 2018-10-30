@@ -15,7 +15,6 @@ import * as sysActions from '../actions/sys';
 import '../components/main.scss';
 
 import Icon16Like from '@vkontakte/icons/dist/16/like';
-import Icon24Like from '@vkontakte/icons/dist/24/like';
 
 class Main extends Component {
     constructor(props) {
@@ -53,13 +52,16 @@ class Main extends Component {
 
                 <div>
                     <UI.Group>
+                        <UI.Header level="2">
+                            РЕКОМЕНДУЕМОЕ
+                        </UI.Header>
                         <UI.Gallery
                             slideWidth="100%"
                             style={{ height: 190 }}
                             bullets="dark"
                             className="main_gallery_wrapper"
                         >
-                            {this.props.gds.gds_new.length? this.props.gds.gds_new.map((e, i) => (
+                            {this.props.gds.gds_city.length? this.props.gds.gds_city.map((e, i) => (
                                 <GalleryItem key={e.id}
                                              ad={e}
                                              currencyCode={getCurrencyCode(e.country_id)}
@@ -68,44 +70,10 @@ class Main extends Component {
                         </UI.Gallery>
                     </UI.Group>
 
-                    <UI.Group style={{ paddingBottom: 16 }}>
-                        <UI.Header level="2">
-                            Рекомендуемые
-                        </UI.Header>
-                        <UI.HorizontalScroll>
-                            <div className="h_scroll_items_wrap">
-                                {this.props.gds.gds_city.length? this.props.gds.gds_city.map((e, i) => {
-                                    let image = "";
-                                    if(e['images'] !== "") {
-                                        image = e["images"].split(",")[0];
-
-                                        image = window.location.protocol + "//" + window.location.hostname +
-                                            "/sys/files/gds/" + image;
-                                    } else {
-                                        image = "/images/no_photo_info.png";
-                                    }
-                                    return (
-                                        <div className="h_scroll_item" key={e.id}
-                                             onClick={() => (this.props.history.push("/product/" + e.id))}>
-                                            <div className="price">
-                                                {e.price + " " + getCurrencyCode(e.country_id)}
-                                            </div>
-                                            <img className="img_avatar"
-                                                 style={{backgroundImage: "url("+image+")" }} alt="" />
-                                            <div className="text">
-                                                {e.title}
-                                            </div>
-                                        </div>
-                                    );
-                                }) : null}
-                            </div>
-                        </UI.HorizontalScroll>
-                    </UI.Group>
-
                     <UI.Group>
                         <UI.Header onClick={() => (this.props.history.push("/all/new"))} level="2"
                                    aside={<UI.Link>Показать все</UI.Link>}>
-                            НОВЫЕ ТОВАРЫ
+                            НОВЫЕ ОБЪЯВЛЕННИЯ
                         </UI.Header>
                         <UI.List className="new_gds">
                             {this.props.gds.gds_new.length? this.props.gds.gds_new.map((e, i) => {
@@ -155,39 +123,43 @@ class Main extends Component {
                         </UI.List>
                     </UI.Group>
 
-                    <UI.Group style={{ paddingBottom: 16 }}>
-                        <UI.Header level="2">
-                            Рекомендуемые
-                        </UI.Header>
-                        <UI.HorizontalScroll>
-                            <div className="h_scroll_items_wrap">
-                                {this.props.gds.gds_city.length? this.props.gds.gds_city.map((e, i) => {
-                                    let image = "";
-                                    if(e['images'] !== "") {
-                                        image = e["images"].split(",")[0];
+                    {Object.keys(this.props.gds.categories).map((key) => (
+                        this.props.gds.categories[key].length? (
+                            <UI.Group key={key} style={{ paddingBottom: 16 }}>
+                                <UI.Header level="2">
+                                    {categories[key]['title']}
+                                </UI.Header>
+                                <UI.HorizontalScroll>
+                                    <div className="h_scroll_items_wrap">
+                                        {this.props.gds.categories[key].map((e, i) => {
+                                            let image = "";
+                                            if(e['images'] !== "") {
+                                                image = e["images"].split(",")[0];
 
-                                        image = window.location.protocol + "//" + window.location.hostname +
-                                            "/sys/files/gds/" + image;
-                                    } else {
-                                        image = "/images/no_photo_info.png";
-                                    }
-                                    return (
-                                        <div className="h_scroll_item" key={e.id}
-                                             onClick={() => (this.props.history.push("/product/" + e.id))}>
-                                            <div className="price">
-                                                {e.price + " " + getCurrencyCode(e.country_id)}
-                                            </div>
-                                            <img className="img_avatar"
-                                                 style={{backgroundImage: "url("+image+")" }} alt="" />
-                                            <div className="text">
-                                                {e.title}
-                                            </div>
-                                        </div>
-                                    );
-                                }) : null}
-                            </div>
-                        </UI.HorizontalScroll>
-                    </UI.Group>
+                                                image = window.location.protocol + "//" + window.location.hostname +
+                                                    "/sys/files/gds/" + image;
+                                            } else {
+                                                image = "/images/no_photo_info.png";
+                                            }
+                                            return (
+                                                <div className="h_scroll_item" key={e.id}
+                                                     onClick={() => (this.props.history.push("/product/" + e.id))}>
+                                                    <div className="price">
+                                                        {e.price + " " + getCurrencyCode(e.country_id)}
+                                                    </div>
+                                                    <img className="img_avatar"
+                                                         style={{backgroundImage: "url("+image+")" }} alt="" />
+                                                    <div className="text">
+                                                        {e.title}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </UI.HorizontalScroll>
+                            </UI.Group>
+                        ) : null
+                    ))}
                 </div>
             </UI.Panel>
         )

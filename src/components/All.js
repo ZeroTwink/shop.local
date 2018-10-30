@@ -9,6 +9,8 @@ import categories from '../utils/categories';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
+import Icon16Like from '@vkontakte/icons/dist/16/like';
+
 // import InfiniteScroll from 'react-infinite-scroll-component';
 
 import InfiniteScroll from '../components/InfiniteScroll';
@@ -21,7 +23,8 @@ class All extends Component {
 
         this.state = {
             gds: [],
-            hasMore: true
+            hasMore: true,
+            waitingContent: true // Ждем первый запрос контента, крутим спиннер
         };
 
         this.page = 0;
@@ -41,7 +44,8 @@ class All extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false
+                hasMore: res.data.response.gds.length? true : false,
+                waitingContent: false
             });
 
             this.page++;
@@ -75,11 +79,21 @@ class All extends Component {
             items.push(
                 <UI.Cell key={e.id}
                          before={<UI.Avatar type="image" style={style} size={64} />}
-                         bottomContent={
+                         asideContent={
                              <div className="price" style={{color: UI.colors.blue}}>
                                  <div style={{color: "#fff"}}>
-                                     {e.price + " " + getCurrencyCode(e.country_id)}
+                                     {e.price + " "}
+                                     <span style={{fontSize: 11}}>{getCurrencyCode(e.country_id)}</span>
                                  </div>
+                             </div>
+                         }
+                         bottomContent={
+                             <div style={{display: "flex", fontSize: 13, color: "#909399"}}>
+                                 <Icon16Like fill="#fb7788"/>
+                                 <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{e.favorites}</div>
+                                 <img style={{width: 16, height: 16, opacity: 0.4}}
+                                      src="/images/view16.png" alt="" />
+                                 <div style={{margin: "-1px 0 0 6px"}}>{e.views}</div>
                              </div>
                          }
                          size="l"
@@ -110,13 +124,20 @@ class All extends Component {
                             dataLength={items.length}
                             loadMore={this.loadNextItems.bind(this)}
                             hasMore={this.state.hasMore}
-                            loader={<div className="loader_infinite_scroll">
-                                Загрузка...
-                            </div>}>
-                            {items}
+                            loader={<UI.Div>
+                                <UI.Spinner size={20} strokeWidth={2}/>
+                            </UI.Div>}>
+                            {items.length? items : null}
+                            {!this.state.waitingContent && !items.length? <div className="message_empty">Нет объявлений</div> : null}
                         </InfiniteScroll>
                     </UI.List>
                 </UI.Group>
+
+                {this.state.waitingContent? (
+                    <UI.Div>
+                        <UI.Spinner/>
+                    </UI.Div>
+                ) : null }
             </UI.Panel>
         )
     }

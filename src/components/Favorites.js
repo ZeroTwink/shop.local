@@ -4,11 +4,14 @@ import axios from '../utils/axios';
 import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
+import Icon16Like from '@vkontakte/icons/dist/16/like';
 
 import categories from '../utils/categories';
 
 // import InfiniteScroll from 'react-infinite-scroll-component';
 import InfiniteScroll from '../components/InfiniteScroll';
+import getCurrencyCode from "../helpers/getCurrencyCode";
+import * as userActions from "../actions/user";
 
 
 class Favorites extends Component {
@@ -17,7 +20,8 @@ class Favorites extends Component {
 
         this.state = {
             gds: [],
-            hasMore: true
+            hasMore: true,
+            waitingContent: true // Ждем первый запрос контента, крутим спиннер
         };
 
         this.page = 0;
@@ -35,8 +39,21 @@ class Favorites extends Component {
         }).then(res => {
             this.setState({
                 gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false
+                hasMore: res.data.response.gds.length? true : false,
+                waitingContent: false
             });
+
+            if(res.data.response['remove_arr'].length) {
+                let arr = [...this.props.user.favorites];
+
+                let arrNew = arr.filter((e) => {
+                    return res.data.response['remove_arr'].indexOf(e) === -1;
+                });
+
+                this.props.userUpdate({
+                    favorites: arrNew
+                });
+            }
 
             this.page++;
         }).catch(error => {
@@ -71,9 +88,22 @@ class Favorites extends Component {
                          before={<UI.Avatar type="image" style={style} size={64} />}
                          asideContent={
                              <div className="price" style={{color: UI.colors.blue}}>
-                                 <div style={{color: "#fff"}}>{e.price} ₽</div>
+                                 <div style={{color: "#fff"}}>
+                                     {e.price + " "}
+                                     <span style={{fontSize: 11}}>{getCurrencyCode(e.country_id)}</span>
+                                 </div>
                              </div>
                          }
+                         bottomContent={
+                             <div style={{display: "flex", fontSize: 13, color: "#909399"}}>
+                                 <Icon16Like fill="#fb7788"/>
+                                 <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{e.favorites}</div>
+                                 <img style={{width: 16, height: 16, opacity: 0.4}}
+                                      src="/images/view16.png" alt="" />
+                                 <div style={{margin: "-1px 0 0 6px"}}>{e.views}</div>
+                             </div>
+                         }
+                         size="l"
                          description={categories[e.category]['title']}
                          onClick={() => (this.props.history.push("/product/" + e.id))}>
                     {e.title}
@@ -98,13 +128,20 @@ class Favorites extends Component {
                             dataLength={items.length}
                             loadMore={this.loadNextItems.bind(this)}
                             hasMore={this.state.hasMore}
-                            loader={<div className="loader_infinite_scroll">
-                                Загрузка...
-                            </div>}>
-                            {items.length? items : (<div className="message_empty">Нет объявлений</div>)}
+                            loader={<UI.Div>
+                                <UI.Spinner size={20} strokeWidth={2}/>
+                            </UI.Div>}>
+                            {items.length? items : null}
+                            {!this.state.waitingContent && !items.length? <div className="message_empty">Нет объявлений</div> : null}
                         </InfiniteScroll>
                     </UI.List>
                 </UI.Group>
+
+                {this.state.waitingContent? (
+                    <UI.Div>
+                        <UI.Spinner/>
+                    </UI.Div>
+                ) : null }
             </UI.Panel>
         )
     }
@@ -117,4 +154,12 @@ function mapStateToProps(state) {
     }
 }
 
-export default connect(mapStateToProps)(Favorites);
+function mapDispatchToProps(dispatch) {
+    return {
+        userUpdate: function (name) {
+            dispatch(userActions.userUpdate(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Favorites);
