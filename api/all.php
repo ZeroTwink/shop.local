@@ -11,7 +11,7 @@ $page = $_GET['page'];
 $offset = $page * 10;
 
 
-$res = Db::me()->query("SELECT * FROM `gds` ORDER BY `time` DESC LIMIT $offset, 10");
+$res = Db::me()->query("SELECT * FROM `gds` ORDER BY `id` DESC LIMIT $offset, 10");
 $data = $res->fetchAll();
 
 $api->assign("gds", $data);
