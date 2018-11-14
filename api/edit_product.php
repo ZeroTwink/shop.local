@@ -2,12 +2,68 @@
 include_once('../sys/inc/start.php');
 $api = new API();
 
-$arr_images = [];
 
 $error = [
     "type" => 0,
     "message" => ""
 ];
+
+if(!isset($_GET['id'])) {
+    $error = [
+        "type" => 2,
+        "message" => "Объявление удалено или еще не размещено"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+$id = (int)$_GET['id'];
+
+$res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id` = ? LIMIT 1");
+$res->execute([$id]);
+$data = $res->fetch();
+
+
+if(!$data) {
+    $error = [
+        "type" => 2,
+        "message" => "Объявление удалено или еще не размещено"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+
+if($data['id_vk'] != $user->id_vk && $user->access <= 6) {
+    $error = [
+        "type" => 3,
+        "message" => "У вас нет прав на редактирование объявления"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+
+
+$all_images = [];
+if($data['images']) {
+    $all_images = explode(',', $data['images']);
+}
+
+$arr_delete = [];
+if(isset($_POST['delete_images']) && $_POST['delete_images'] != "") {
+    $arr_delete = explode(',', $_POST['delete_images']);
+}
+
+for($i = 0; $i < count($arr_delete); $i++) {
+    if(file_exists(H."/sys/files/gds/" . $all_images[$arr_delete[$i]])) {
+        unlink(H."/sys/files/gds/" . $all_images[$arr_delete[$i]]);
+    }
+
+    $all_images[$arr_delete[$i]] = "";
+}
+
+for($i = count($all_images); $i < 5; $i++) {
+    $all_images[$i] = "";
+}
+
 
 
 $dir = new Files(H.'/sys/tmp/');
@@ -52,7 +108,10 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
 }
 
 
-$replace = [$user->id, $user->id_vk];
+
+
+
+$replace = [];
 
 if(isset($_POST['title']) && Text::strlen($_POST['title']) > 2) {
     $replace[] = $_POST['title'];
@@ -161,44 +220,88 @@ if(isset($_POST['city_title'])  && Text::strlen($_POST['city_title']) > 1) {
 }
 
 
-
-$replace[] = TIME;
-
-$in_news = Db::me()->prepare("INSERT INTO `gds` (`id_user`, `id_vk`, `title`, `category`, `subcategory`, 
-`email`, `phone_number`, `price`, `state`, `state_balls`, 
-`description`, `country_id`, `country_title`, `city_id`, `city_title`, `time`) 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-$in_news->execute($replace);
-
-
-$last_id = Db::me()->lastInsertId();
-
-
+$last_id = $id;
+$folder = substr($last_id, -1);
+$index_arr = 0;
 if(isset($_FILES['img']) && count($_FILES['img'])) {
     foreach($_FILES['img']['name'] AS $key => $val) {
         $typef = $dir->typeFile($_FILES ['img']['name'][$key]);
         $namef = 'post_' . $key . '.' . $typef;
 
-
         if($rtr = $dir->upload(array($_FILES['img']['tmp_name'][$key] => $namef))) {
-            $folder = substr($last_id, -1);
+
+            for($i = 0; $i < 5; $i++) {
+                if(!$all_images[$i]) {
+                    $index_arr = $i;
+
+                    break;
+                }
+            }
 
             $scr = new ImageResize(H.'/sys/tmp/' . $namef);
             $scr->resizeToWidth(600);
-            $scr->saveImage(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $key .
+            $scr->saveImage(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $index_arr .
                 ".jpg", 80);
 
-            $arr_images[] = "folder_".$folder."/".'post_' . $last_id. "_" . $key . ".jpg";
+            $all_images[$index_arr] = "folder_".$folder."/".'post_' . $last_id. "_" . $index_arr . ".jpg";
 
             unlink(H.'/sys/tmp/' . $namef);
         }
     }
-
-    $res = Db::me()->query("UPDATE `gds` SET `images` = '".implode(",", $arr_images)."' WHERE `id` = $last_id");
 }
 
-$res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id` = ? LIMIT 1");
-$res->execute([$last_id]);
-$insert_product = $res->fetch();
+for($i = 0; $i < 5; $i++) {
+    if(!$all_images[$i]) {
+        unset($all_images[$i]);
+    }
+}
 
-$api->assign("product", $insert_product);
+$all_images = array_values($all_images);
+
+
+$all_images_finish = [];
+
+if(isset($_POST['delete_images']) && $_POST['delete_images'] != "") {
+    for ($i = 0; $i < count($all_images); $i++) {
+        $lol = rename(H."/sys/files/gds/" . $all_images[$i],
+            H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id. "_" . $i . ".jpg");
+
+        $all_images_finish[] = "folder_".$folder."/".'post_' . $last_id. "_" . $i . ".jpg";
+    }
+
+    $all_images = $all_images_finish;
+}
+
+
+$replace[] = implode(",", $all_images);
+$replace[] = TIME;
+$replace[] = $id;
+
+$up_gds = Db::me()->prepare("UPDATE `gds` SET `title` = ?, `category` = ?, `subcategory` = ?, `email` = ?, 
+`phone_number` = ?, `price` = ?, `state` = ?, `state_balls` = ?, `description` = ?, `country_id` = ?, 
+`country_title` = ?, `city_id` = ?, `city_title` = ?, `images` = ?, `time_update` = ? WHERE `id` = ? LIMIT 1");
+$up_gds->execute($replace);
+
+
+// TODO чтобы админам не высывалось  && $data['id_vk'] != $user->id_vk
+if($user->access > 6) {
+    $ank = new User($data['id_vk']);
+
+    $params = [
+        "text" => "Администратор отредактировал ваше объявление " . Text::substr($data['title'], 26)
+    ];
+
+    if($data['images']) {
+        $images = explode(",", $data['images']);
+        $params['image'] = $images[0];
+    }
+
+    $params['url'] = "/product/" . $data['id'];
+    $params['button'] = "Открыть";
+
+    $params['hash'] = "product/" . $data['id'];
+
+    $result = $ank->addNotification('edit', $params);
+
+    $api->assign("result", $result);
+}

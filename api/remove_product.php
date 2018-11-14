@@ -26,7 +26,7 @@ if(!$product) {
     exit;
 }
 
-if($product['id_vk'] != $user->id_vk) {
+if($product['id_vk'] != $user->id_vk && $user->access <= 6) {
     $error = [
         "type" => 3,
         "message" => "У вас нет прав на удаления объявления"
@@ -45,6 +45,27 @@ if($product['images']) {
             unlink(H."/sys/files/gds/" . $val);
         }
     }
+}
+
+// TODO чтобы админам не высывалось  && $product['id_vk'] != $user->id_vk
+if($user->access > 6) {
+    $ank = new User($product['id_vk']);
+
+    $params = [
+        "text" => "Администрация удалила ваше объявление " . Text::substr($product['title'], 26)
+    ];
+
+//    if($product['images']) {
+//        $images = explode(",", $product['images']);
+//        $params['image'] = $images[0];
+//    }
+
+//    $params['url'] = "/product/" . $product['id'];
+//    $params['button'] = "Открыть";
+
+    $result = $ank->addNotification('delete', $params);
+
+    $api->assign("result", $result);
 }
 
 $api->assign("status", 1);

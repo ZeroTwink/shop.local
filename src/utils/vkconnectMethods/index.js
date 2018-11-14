@@ -1,5 +1,6 @@
 import * as database from "./database/";
 import * as users from "./users/";
+import * as apps from "./apps/";
 
 export default function mockMethod(nameMethod, params = {}) {
     let arrM = nameMethod.split(".");
@@ -13,6 +14,9 @@ export default function mockMethod(nameMethod, params = {}) {
 
         case "users" :
             data = users[arrM[1]](params);
+            break;
+        case "apps" :
+            data = apps[arrM[1]](params);
             break;
 
         default:

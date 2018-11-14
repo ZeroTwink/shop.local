@@ -95,6 +95,53 @@ class User
         return $this->_data;
     }
 
+    public function addNotification($type, $params = [], $vk_send = true)
+    {
+        if(!$this->_data['set_notifications'] || !$this->_data['set_notifi_' . $type]) {
+            return [];
+        }
+
+        $notifications = [
+            "items" => [],
+            "new" => 0
+        ];
+
+        if($this->_data['notifications']) {
+            $notifications = Json::decode($this->_data['notifications']);
+        }
+
+        if (count($notifications['items']) >= 20) {
+            array_pop($notifications['items']);
+        }
+
+        $params['time'] = TIME;
+
+        array_unshift($notifications['items'], $params);
+
+        $notifications['new'] += 1;
+
+        $this->_update['notifications'] = Json::encode($notifications);
+        $this->_data['notifications'] = $this->_update['notifications'];
+
+        // Не отпровлять в ВК
+        if(!$vk_send) {
+            return [];
+        }
+
+        $request_params = array(
+            'user_ids' => $this->_id_vk,
+            'message' => $params['text'],
+            'fragment' => $params['hash']? $params['hash'] : "",
+            'v' => V_API,
+            'access_token' => SERVER_KEY
+        );
+        $get_params = http_build_query($request_params);
+        $result = json_decode(file_get_contents('https://api.vk.com/method/notifications.sendMessage?'. $get_params));
+
+        return $result;
+    }
+
+
     /**
      * @param string $n ключ
      * @return mixed значение

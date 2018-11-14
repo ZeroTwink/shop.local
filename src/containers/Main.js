@@ -15,6 +15,7 @@ import * as sysActions from '../actions/sys';
 import '../components/main.scss';
 
 import Icon16Like from '@vkontakte/icons/dist/16/like';
+import VKConnect from "../utils/VKConnect";
 
 class Main extends Component {
     constructor(props) {
@@ -82,7 +83,7 @@ class Main extends Component {
                                     image = e["images"].split(",")[0];
 
                                     image = window.location.protocol + "//" + window.location.hostname +
-                                        "/sys/files/gds/" + image;
+                                        "/sys/files/gds/" + image + "?v=" + e['time_update'];
                                 } else {
                                     image = "/images/no_photo_info.png";
                                 }
@@ -137,7 +138,7 @@ class Main extends Component {
                                                 image = e["images"].split(",")[0];
 
                                                 image = window.location.protocol + "//" + window.location.hostname +
-                                                    "/sys/files/gds/" + image;
+                                                    "/sys/files/gds/" + image + "?v=" + e['time_update'];
                                             } else {
                                                 image = "/images/no_photo_info.png";
                                             }

@@ -11,8 +11,8 @@ import * as gdsActions from '../../actions/gds';
 
 import categories from '../../utils/categories';
 
-// import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
-// import Icon24Back from '@vkontakte/icons/dist/24/back';
+import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
+import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
@@ -20,34 +20,82 @@ import getCurrencyCode from '../../helpers/getCurrencyCode';
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
 
-class AddProduct extends Component {
+class EditProduct extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-
-        };
+        this.state = {};
 
         this.formData = null;
     }
 
-
     componentDidMount() {
+        this.props.setPopout(<UI.ScreenSpinner />);
+
         if(this.props.addProduct.arrImagesLoad.length) {
+            this.props.setPopout(null);
+
             return;
         }
 
-        let arr = [];
-        for(let i = 0; i < 5; i++) {
-            let data = {
-                image: null,
-                file: null
-            };
-            arr.push(data);
-        }
+        axios.get("/api/get_product_for_id.php", {
+            params: {
+                id: this.props.match.params['pId']
+            }
+        }).then(res => {
+            this.props.setPopout(null);
 
-        this.props.setValues({
-            arrImagesLoad: arr
+            if(res.data.error) {
+                this.displayError(res.data.error.message);
+
+                return;
+            }
+
+            let p = res.data.response.product;
+
+            let images = p["images"].split(",");
+
+            if(images[0] === "") {
+                images = [];
+            }
+
+            let arr = [];
+            for(let i = 0; i < 5; i++) {
+                let data = {
+                    image: null,
+                    file: null
+                };
+                arr.push(data);
+            }
+
+            for(let i = 0; i < images.length; i++) {
+                arr[i]['image'] = window.location.protocol + "//" + window.location.hostname +
+                    "/sys/files/gds/" + images[i] + "?v=" + p['time_update'];
+            }
+
+            this.props.setValues({
+                priceInputValue: String(p['price']),
+                titleInputValue: String(p['title']),
+                category: String(p['category']),
+                subcategory: String(p['subcategory']),
+                stateProductInputValue: String(p['state']),
+                stateBallsInputValue: String(p['state_balls']),
+                descriptionInputValue: String(p['description']),
+                emailInputValue: String(p['email']),
+                phoneNumberInputValue: String(p['phone_number']),
+                country: {
+                    id: p['country_id'],
+                    title: p['country_title']
+                },
+                city: {
+                    id: p['city_id'],
+                    title: p['city_title']
+                },
+                arrImagesLoad: arr,
+                deleteImages: []
+            });
+        }).catch(error => {
+            console.log(error);
         });
     }
 
@@ -111,7 +159,7 @@ class AddProduct extends Component {
     }
 
     onChangeStateProduct(e) {
-        let stateBalls = 3;
+        let stateBalls = this.props.addProduct.stateBallsInputValue || 3;
 
         if(+e.target.value === 1) {
             stateBalls = 5;
@@ -273,58 +321,63 @@ class AddProduct extends Component {
             this.formData.append('phone_number', "");
         }
 
+        this.formData.append('delete_images', this.props.addProduct['deleteImages']);
+
         axios({
             method: 'post',
-            url: "/api/add_product.php",
+            params: {
+                id: this.props.match.params['pId']
+            },
+            url: "/api/edit_product.php",
             data: this.formData,
             config: { headers: {'Content-Type': 'multipart/form-data' }}
         })
-        .then((response) => {
-            this.props.setPopout(null);
+            .then((response) => {
+                this.props.setPopout(null);
 
-            if(response.data.error) {
-                this.displayError(response.data.error.message);
+                if(response.data.error) {
+                    this.displayError(response.data.error.message);
 
-                return;
-            }
+                    return;
+                }
 
-            let gdsNew = [...this.props.gds['gds_new']];
-            gdsNew.unshift(response.data.response["product"]);
+                let gdsNew = [...this.props.gds['gds_new']];
+                gdsNew.unshift(response.data.response["product"]);
 
-            let cats = null;
-            if(this.props.gds.categories[this.props.addProduct.category]) {
-                let cats = {...this.props.gds.categories};
+                let cats = null;
+                if(this.props.gds.categories[this.props.addProduct.category]) {
+                    let cats = {...this.props.gds.categories};
 
-                cats[this.props.addProduct.category].unshift(response.data.response["product"]);
-            }
+                    cats[this.props.addProduct.category].unshift(response.data.response["product"]);
+                }
 
-            this.props.gdsUpdate({
-                "gds_new": gdsNew,
-                "categories": cats? cats : this.props.gds.categories
+                this.props.gdsUpdate({
+                    "gds_new": gdsNew,
+                    "categories": cats? cats : this.props.gds.categories
+                });
+
+
+                // let arr = [];
+                // for(let i = 0; i < 5; i++) {
+                //     let data = {
+                //         image: null,
+                //         file: null
+                //     };
+                //     arr.push(data);
+                // }
+                this.props.setValues({
+                    descriptionInputValue: "",
+                    titleInputValue: "",
+                    priceInputValue: "",
+                    arrImagesLoad: []
+                });
+
+                this.props.history.replace("/product/" + this.props.match.params['pId']);
+            })
+            .catch((response) => {
+                console.log(response);
+                this.props.setPopout(null);
             });
-
-
-            // let arr = [];
-            // for(let i = 0; i < 5; i++) {
-            //     let data = {
-            //         image: null,
-            //         file: null
-            //     };
-            //     arr.push(data);
-            // }
-            this.props.setValues({
-                descriptionInputValue: "",
-                titleInputValue: "",
-                priceInputValue: "",
-                arrImagesLoad: []
-            });
-
-            this.props.history.replace("/product/" + response.data.response["product"]['id']);
-        })
-        .catch((response) => {
-            console.log(response);
-            this.props.setPopout(null);
-        });
     }
 
     fileChange(e) {
@@ -356,6 +409,8 @@ class AddProduct extends Component {
 
     deleteFileImgPriv(i) {
         let arr = [...this.props.addProduct.arrImagesLoad];
+
+        this.props.addProduct['deleteImages'].push(i);
 
         arr[i]['image'] = null;
         arr[i]['file'] = null;
@@ -432,12 +487,15 @@ class AddProduct extends Component {
     }
 
     render() {
-        // const osname = UI.platform();
+        const osname = UI.platform();
 
         return (
             <UI.Panel id={this.props.id}>
-                <UI.PanelHeader>
-                    Новое объявление
+                <UI.PanelHeader
+                    left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
+                        <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
+                >
+                    Редактирование
                 </UI.PanelHeader>
 
                 <UI.Group title="Геоданные">
@@ -488,12 +546,14 @@ class AddProduct extends Component {
                         </UI.Select>
 
                         <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
-                             onChange={this.onChangeStateProduct.bind(this)}>
+                                            onChange={this.onChangeStateProduct.bind(this)}>
                             <UI.Radio name="type" value="0"
-                                      defaultChecked={!this.props.addProduct.stateProductInputValue}
+                                      onChange={() => null}
+                                      checked={!this.props.addProduct.stateProductInputValue}
                                       description="Товар был в эксплуатации">Б/у</UI.Radio>
                             <UI.Radio name="type" value="1"
-                                      defaultChecked={this.props.addProduct.stateProductInputValue}
+                                      onChange={() => null}
+                                      checked={this.props.addProduct.stateProductInputValue}
                                       description="Не разу не использовался">Новый</UI.Radio>
                         </UI.FormLayoutGroup>
 
@@ -546,7 +606,7 @@ class AddProduct extends Component {
 
                         <UI.Textarea top="Описание" placeholder="Описание товара"
                                      onChange={this.onChangeDescription.bind(this)}
-                                     defaultValue={this.props.addProduct.descriptionInputValue}/>
+                                     value={this.props.addProduct.descriptionInputValue}/>
                     </UI.FormLayout>
                 </UI.Group>
 
@@ -601,4 +661,4 @@ function mapDispatchToProps(dispatch) {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddProduct);
+export default connect(mapStateToProps, mapDispatchToProps)(EditProduct);

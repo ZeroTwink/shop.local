@@ -5,10 +5,13 @@ import * as UI from '@vkontakte/vkui';
 
 import Main from '../containers/Main';
 import Filters from '../containers/Filters';
+import SetNotifications from '../containers/SetNotifications';
+import Notifications from '../containers/Notifications';
 import SelectCityFilters from '../containers/SelectCityFilters';
 import SelectCountryFilters from '../containers/SelectCountryFilters';
 import Info from './product/Info';
 import AddProduct from './product/AddProduct';
+import EditProduct from './product/EditProduct';
 import SelectCountries from './SelectCountries';
 import SelectCity from './SelectCity';
 import Menu from './Menu';
@@ -24,8 +27,9 @@ import '@vkontakte/vkui/dist/vkui.css';
 
 import Icon24Home from '@vkontakte/icons/dist/24/home';
 import Icon24Filter from '@vkontakte/icons/dist/24/filter';
-import Icon24Add from '@vkontakte/icons/dist/24/add';
+import Icon28AddOutline from '@vkontakte/icons/dist/28/add_outline';
 import Icon28Menu from '@vkontakte/icons/dist/28/menu';
+import Icon28Notification from '@vkontakte/icons/dist/28/notification';
 
 class App extends Component {
     constructor(props) {
@@ -76,7 +80,12 @@ class App extends Component {
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/add_product")}
                             selected={pageId === 'add_product'}
-                        ><Icon24Add /></UI.TabbarItem>
+                        ><Icon28AddOutline /></UI.TabbarItem>
+                        <UI.TabbarItem
+                            onClick={() => this.props.history.push("/notifications")}
+                            selected={pageId === 'notifications'}
+                            label={this.props.user['notifications']['new']? this.props.user['notifications']['new'] : ""}
+                        ><Icon28Notification /></UI.TabbarItem>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/menu")}
                             selected={pageId === 'menu'}
@@ -87,6 +96,7 @@ class App extends Component {
                         <Main id="main" {...this.props}/>
                         <Info id="product" {...this.props}/>
                         <AddProduct id="add_product" {...this.props}/>
+                        <EditProduct id="edit_product" {...this.props}/>
                         <Menu id="menu" {...this.props}/>
                         <GdsUserId id="gds_user_id" {...this.props}/>
                         <Favorites id="favorites" {...this.props}/>
@@ -94,6 +104,8 @@ class App extends Component {
                         <About id="about" {...this.props}/>
                         <All id="all" {...this.props}/>
                         <Rules id="rules" {...this.props}/>
+                        <SetNotifications id="set_notifications" {...this.props}/>
+                        <Notifications id="notifications" {...this.props}/>
                     </UI.View>
 
                     <UI.View id="choose" activePanel={this.props['sys']['active']['panel']}>
@@ -130,6 +142,7 @@ class App extends Component {
 
 function mapStateToProps(state) {
     return {
+        user: state.user,
         sys: state.sys,
         vk: state.vk
     }

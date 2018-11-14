@@ -120,35 +120,6 @@ class PageLoader extends Component {
 
             if("VKWebAppGetUserInfoResult" === type) {
 
-                if(!data['signed_user_id']) {
-                    let el = (
-                        <div>
-                            Для работы сервиса необходимо обновить официальное приложение VK
-                            {UI.platform() === UI.IOS? (
-                                <UI.Group>
-                                    <UI.Link href="https://itunes.apple.com/ru/app/vk-app/id564177498?mt=8">
-                                        <UI.Div>
-                                            Вконтакте для IOS
-                                        </UI.Div>
-                                    </UI.Link>
-                                </UI.Group>
-                            ) : (
-                                <UI.Group>
-                                    <UI.Link href="https://play.google.com/store/apps/details?id=com.vkontakte.android">
-                                        <UI.Div>
-                                            Вконтакте для ANDROID
-                                        </UI.Div>
-                                    </UI.Link>
-                                </UI.Group>
-                            )}
-                        </div>
-                    );
-
-                    this.displayError(el);
-
-                    return false;
-                }
-
                 this.props.fetchUserInfo(data);
 
                 this.setState({
@@ -167,35 +138,8 @@ class PageLoader extends Component {
     }
 
     step3() {
-        // let countLoaders = 0;
-        //
-        // let goToMain = () => {
-        //     countLoaders++;
-        //
-        //     if(countLoaders >= 2) {
-        //         // if(this.props.sys.refresh) {
-        //         //     this.props.history.replace("/main");
-        //         //
-        //         //     // this.props.setRefresh("");
-        //         //
-        //         //     return;
-        //         // }
-        //         //
-        //         // // TODO Это чисто чтобы можно было назат вернутся при разработке, оставить replace, а push убрать
-        //         // if(process.env.NODE_ENV === 'production') {
-        //         //     this.props.history.replace("/main");
-        //         // } else {
-        //         //     this.props.history.push("/main");
-        //         // }
-        //
-        //         this.props.history.replace("/main");
-        //     }
-        // };
-
         axios.defaults.params = {
-            viewer_id: this.state.user.id,
             access_token: this.state.accessToken,
-            signed_user_id: this.state.user.signed_user_id? this.state.user.signed_user_id : "",
             ...$_GET
         };
 
@@ -228,7 +172,13 @@ class PageLoader extends Component {
                 categories: res.data.response['categories'],
             });
 
-            res.data.response.user['favorites'] = res.data.response.user['favorites'].split(",");
+            res.data.response.user['favorites'] = String(res.data.response.user['favorites']).split(",");
+
+            if(res.data.response.user['notifications']) {
+                res.data.response.user['notifications'] = JSON.parse(res.data.response.user['notifications']);
+            } else {
+                res.data.response.user['notifications'] = {};
+            }
 
             this.props.userLoad(res.data.response.user);
 
@@ -237,6 +187,7 @@ class PageLoader extends Component {
             // goToMain();
         }).catch(error => {
             console.log(error);
+            this.displayError("Возникла серверная ошибка, перезапустите сервис");
         });
 
         // axios.get("/api/get_user.php").then(res => {

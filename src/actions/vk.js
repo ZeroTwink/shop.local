@@ -1,6 +1,10 @@
 import VKConnect from '../utils/VKConnect';
 
 import * as types from './types/vkActionTypes';
+import * as userActions from "./user";
+
+import axios from '../utils/axios';
+
 
 
 
@@ -28,13 +32,6 @@ export function initApp() {
             let data = vkEvent['data'];
 
             switch (type) {
-                case 'VKWebAppAllowNotificationsResult':
-                    dispatch({
-                        type: types.VK_NOTIFICATION_STATUS_FETCHED,
-                        notificationStatus: true,
-                    });
-                    break;
-
                 case 'VKWebAppGetPhoneNumberResult':
                     dispatch({
                         type: types.VK_GET_PHONE_NUMBER,
@@ -46,6 +43,40 @@ export function initApp() {
                     dispatch({
                         type: types.VK_GET_EMAIL,
                         payload: data['email']
+                    });
+                    break;
+
+                case 'VKWebAppAllowNotificationsResult':
+                    dispatch(userActions.userUpdate({
+                        set_notifications: 1
+                    }));
+
+                    axios.get("/api/set_notifications.php", {
+                        params: {
+                            type: "all",
+                            set: 1
+                        }
+                    }).then(res => {
+                        console.log(res);
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                    break;
+
+                case 'VKWebAppDenyNotificationsResult':
+                    dispatch(userActions.userUpdate({
+                        set_notifications: 0
+                    }));
+
+                    axios.get("/api/set_notifications.php", {
+                        params: {
+                            type: "all",
+                            set: 0
+                        }
+                    }).then(res => {
+                        console.log(res);
+                    }).catch(error => {
+                        console.log(error);
                     });
                     break;
 
@@ -123,13 +154,9 @@ export function fetchEmail() {
 
 
 export function denyNotifications() {
-    return async () => {
-        VKConnect.send('VKWebAppDenyNotifications', {});
-    }
+    VKConnect.send('VKWebAppDenyNotifications', {});
 }
 
 export function allowNotifications() {
-    return async () => {
-        VKConnect.send('VKWebAppAllowNotifications', {});
-    }
+    VKConnect.send('VKWebAppAllowNotifications', {});
 }

@@ -20,7 +20,7 @@ if(process.env.NODE_ENV !== 'production') {
         vk_are_notifications_enabled: 0,
         vk_language: "ru",
         vk_access_token_settings: "menu,offline",
-        vk_sign: "7iLBtLI1W9IEXCb80PJBR36AzD5WHWORkjCA8TgcQGo"
+        sign: "hK6Wj3OeEPbxAQRLVriVfnrgH3zOs_PcTIdaWd6T4QE"
     };
 }
 

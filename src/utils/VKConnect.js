@@ -10,6 +10,8 @@ if(process.env.NODE_ENV === 'production') {
 } else {
     VKConnect = VKConnectMock;
 
+    let subscribers = [];
+
     let VKConnectClon = Object.assign({}, VKConnect);
 
     VKConnect.send = function (name, param = {}) {
@@ -23,8 +25,43 @@ if(process.env.NODE_ENV === 'production') {
             };
         }
 
+        if("VKWebAppAllowNotifications" === name) {
+            subscribers.forEach((fn) => {
+                fn({
+                    detail: {
+                        "type": "VKWebAppAllowNotificationsResult",
+                        "data": {
+                            "enabled": true
+                        }
+                    }
+                });
+            });
+
+            return;
+        }
+        if("VKWebAppDenyNotifications" === name) {
+            subscribers.forEach((fn) => {
+                fn({
+                    detail: {
+                        "type": "VKWebAppDenyNotificationsResult",
+                        "data": {
+                            "disabled": true
+                        }
+                    }
+                });
+            });
+
+            return;
+        }
+
 
         VKConnectClon.send(name, param);
+    };
+
+    VKConnect.subscribe = function (fn) {
+        subscribers.push(fn);
+
+        VKConnectClon.subscribe(fn);
     };
 
     res.VKWebAppGetAuthToken.data = {

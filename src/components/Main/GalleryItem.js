@@ -9,7 +9,7 @@ export default class GalleryItem extends Component {
             image = ad["images"].split(",")[0];
 
             image = window.location.protocol + "//" + window.location.hostname +
-                "/sys/files/gds/" + image;
+                "/sys/files/gds/" + image + "?v=" + ad['time_update'];
         } else {
             image = "/images/no_photo_info.png";
         }

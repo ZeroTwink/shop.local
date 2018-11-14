@@ -4,9 +4,9 @@ import * as UI from '@vkontakte/vkui';
 
 import axios from '../utils/axios';
 
-import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
-import Icon24Back from '@vkontakte/icons/dist/24/back';
-import Icon24Cancel from '@vkontakte/icons/dist/24/cancel';
+// import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
+// import Icon24Back from '@vkontakte/icons/dist/24/back';
+// import Icon24Cancel from '@vkontakte/icons/dist/24/cancel';
 
 import * as sysActions from '../actions/sys';
 import * as filtersActions from '../actions/filters';
@@ -191,16 +191,16 @@ class Filters extends Component {
     }
 
     iconHeader(osname) {
-        if(String(this.state.activeTab) === "result") {
-            return <Icon24Cancel/>;
-        }
-
-        return osname === UI.IOS ? <Icon28ChevronBack/> : <Icon24Back/>
+        // if(String(this.state.activeTab) === "result") {
+        //     return <Icon24Cancel/>;
+        // }
+        //
+        // return osname === UI.IOS ? <Icon28ChevronBack/> : <Icon24Back/>
     };
 
 
     render() {
-        const osname = UI.platform();
+        // const osname = UI.platform();
 
         let items = [];
         this.state.gds.map((e, i) => {
@@ -242,11 +242,7 @@ class Filters extends Component {
 
         return (
             <UI.Panel id={this.props.id}>
-                <UI.PanelHeader noShadow
-                    left={<UI.HeaderButton onClick={this.clickHeaderButton.bind(this)}>
-                        {this.iconHeader(osname)}
-                        </UI.HeaderButton>}
-                >
+                <UI.PanelHeader noShadow>
                     Фильтры
                 </UI.PanelHeader>
 

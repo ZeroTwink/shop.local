@@ -9,12 +9,17 @@ header("Access-Control-Allow-Origin: *");
 //header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, Access-Control-Allow-Headers");
 
-/*
- * Подгруска файла настрок
- */
-//$sys = SysConfig::getInstance();
+if(!isset($_GET['access_token']) || empty($_GET['access_token'])) {
+    header('Content-Type: application/json; charset=utf-8', true);
+    $response = [];
+    $response['error'] = [
+        "type" => 1,
+        "message" => 'Ошибка авторизации'
+    ];
 
-//print_r($_SERVER);
+    echo Json::encode($response);
+    exit;
+}
 
 //$params = [];
 //parse_str($_SERVER['QUERY_STRING'], $params);
@@ -28,15 +33,28 @@ header("Access-Control-Allow-Headers: Content-Type, X-Requested-With, Access-Con
 //}
 //
 //$sign = rtrim(strtr(base64_encode(hash('sha256', $sign_string, true)), '+/', '-_'), '=');
-//
-//echo $sign;
 
 
-if(!isset($_GET['viewer_id'])
-    || !isset($_GET['access_token'])
-    || !isset($_GET['signed_user_id'])
-    || empty($_GET['viewer_id'])
-    || empty($_GET['access_token'])) {
+$query_params = [];
+parse_str($_SERVER['QUERY_STRING'], $query_params); // Получаем query-параметры из URL
+
+$sign_params = [];
+foreach ($query_params as $name => $value) {
+    if (strpos($name, 'vk_') !== 0) { // Получаем только vk параметры из query
+        continue;
+    }
+
+    $sign_params[$name] = $value;
+}
+
+ksort($sign_params); // Сортируем массив по ключам
+$sign_params_query = http_build_query($sign_params); // Формируем строку вида "param_name1=value&param_name2=value"
+$sign = rtrim(strtr(base64_encode(hash_hmac('sha256', $sign_params_query, API_SECRET, true)), '+/', '-_'), '='); // Получаем хеш-код от строки, используя защищеный ключ приложения. Генерация на основе метода HMAC.
+
+
+$vk_sign = isset($_GET['vk_sign'])? $_GET['vk_sign'] : $_GET['sign'];
+
+if ($vk_sign != $sign) {
     header('Content-Type: application/json; charset=utf-8', true);
     $response = [];
     $response['error'] = [
@@ -48,35 +66,15 @@ if(!isset($_GET['viewer_id'])
     exit;
 }
 
-$signed_user_id = rtrim(
-    strtr(
-        base64_encode(
-            hash('sha256', API_ID . API_SECRET . $_GET['viewer_id'], true)
-        ), '+/', '-_'
-    ), '='
-);
 
-if ($_GET['signed_user_id'] != $signed_user_id) {
-    header('Content-Type: application/json; charset=utf-8', true);
-    $response = [];
-    $response['error'] = [
-        "type" => 1,
-        "message" => 'Ошибка авторизации'
-    ];
-
-    echo Json::encode($response);
-    exit;
-}
-
-
-$user = new User($_GET['viewer_id']);
+$user = new User($_GET['vk_user_id']);
 
 if($user->id == false) {
     $res = Db::me()->prepare("INSERT INTO `users` (`id_vk`) VALUES (?)");
-    $res->execute([$_GET['viewer_id']]);
+    $res->execute([$_GET['vk_user_id']]);
     $id_user = Db::me()->lastInsertId();
 
-    $user = new User($_GET['viewer_id']);
+    $user = new User($_GET['vk_user_id']);
 }
 
 

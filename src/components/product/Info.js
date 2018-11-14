@@ -17,8 +17,12 @@ import Icon16Dropdown from '@vkontakte/icons/dist/16/dropdown';
 import Icon24Delete from '@vkontakte/icons/dist/24/delete';
 import Icon24LikeOutline from '@vkontakte/icons/dist/24/like_outline';
 import Icon24Like from '@vkontakte/icons/dist/24/like';
+import Icon24Share from '@vkontakte/icons/dist/24/share';
+import Icon24LogoLivejournal from '@vkontakte/icons/dist/24/logo_livejournal';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
+
+import VKConnect from '../../utils/VKConnect';
 
 import * as vkActions from '../../actions/vk';
 import * as userActions from '../../actions/user';
@@ -150,7 +154,7 @@ class Info extends Component {
         });
     }
 
-    displayError(message) {
+    displayError(message, title) {
         this.props.setPopout(
             <UI.Alert
                 actions={[{
@@ -160,7 +164,7 @@ class Info extends Component {
                 }]}
                 onClose={() => this.props.setPopout(null)}
             >
-                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Ошибка</div></h2>
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>{title? title : "Ошибка"}</div></h2>
                 <div style={{textAlign: "center"}}>{message}</div>
             </UI.Alert>
         );
@@ -268,7 +272,30 @@ class Info extends Component {
         });
     }
 
-    onClickDeleteGds() {
+    onClickDeleteGds(confirm) {
+        if(!confirm) {
+            this.props.setPopout(
+                <UI.Alert
+                    actions={[{
+                        title: 'Отменить',
+                        autoclose: true,
+                        style: 'cancel'
+                    }, {
+                        title: 'Удалить',
+                        autoclose: true,
+                        style: 'destructive',
+                        action: () => this.onClickDeleteGds({}, true)
+                    }]}
+                    onClose={() => this.props.setPopout(null)}
+                >
+                    <h2><div style={{color: "#ff473d", textAlign: "center"}}>Удаление</div></h2>
+                    <div style={{textAlign: "center"}}>Вы уверены, что хотите удалить объявление?</div>
+                </UI.Alert>
+            );
+
+            return;
+        }
+
         this.props.setPopout(<UI.ScreenSpinner />);
 
         axios.get("/api/remove_product.php", {
@@ -312,6 +339,25 @@ class Info extends Component {
         });
     }
 
+    share() {
+        let clb = (e) => {
+            // let data = e.detail['data'];
+            let type = e.detail['type'];
+
+            if("VKWebAppShareResult" === type) {
+                this.displayToasts("Ссылка отправлена");
+            }
+
+            // if("VKWebAppShareFailed" === type) {
+            //     this.displayError("Поделится ссылкой не вышло, внутренняя ошибка");
+            // }
+        };
+
+        VKConnect.unsubscribe(clb);
+        VKConnect.subscribe(clb);
+        VKConnect.send("VKWebAppShare", {"link": "https://vk.com/app6689902#product/" + this.props.match.params.pId});
+    }
+
 
     render() {
         const osname = UI.platform();
@@ -340,27 +386,35 @@ class Info extends Component {
             allImages = product["images"].split(",");
         }
 
+        let access = +product['id_vk'] === +this.props.vk.user.id || this.props.user['access'] > 6;
+
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    {+product['id_vk'] === +this.props.vk.user.id? (
+                    {access? (
                         <UI.PanelHeaderContent aside={<Icon16Dropdown />} onClick={this.toggleContext.bind(this)}>
                             Объявление
                         </UI.PanelHeaderContent>
                     ) : ("Объявление")}
                 </UI.PanelHeader>
 
-                {+product['id_vk'] === +this.props.vk.user.id? (
+                {access? (
                     <UI.HeaderContext opened={this.state.contextOpened} onClose={this.toggleContext.bind(this)}>
                         <UI.List>
                             <UI.Cell
                                 before={<Icon24Delete />}
-                                onClick={this.onClickDeleteGds.bind(this)}
+                                onClick={this.onClickDeleteGds.bind(this, false)}
                             >
                                 Удалить объявление
+                            </UI.Cell>
+                            <UI.Cell
+                                before={<Icon24LogoLivejournal />}
+                                onClick={() => this.props.history.push('/edit_product/' + this.props.match.params['pId'])}
+                            >
+                                Измненить объявление
                             </UI.Cell>
                         </UI.List>
                     </UI.HeaderContext>
@@ -375,7 +429,7 @@ class Info extends Component {
                         {allImages.length? allImages.map((e, i) => {
                             let style = {
                                 backgroundImage: 'url('+window.location.protocol + "//" + window.location.hostname +
-                                "/sys/files/gds/" + e + ')',
+                                "/sys/files/gds/" + e + "?v=" + product['time_update'] + ')',
                                 backgroundSize: "cover"
                             };
 
@@ -417,12 +471,18 @@ class Info extends Component {
 
                 <UI.Group>
                     <UI.Div>
-                        <UI.Button
-                            onClick={this.toggleFavorites.bind(this)}
-                            level={this.state.addedToFavorites? "2" : "buy"}
-                            size="xl" before={this.state.addedToFavorites? <Icon24Like fill={UI.colors.red_light}/> : <Icon24LikeOutline/>}>
-                            {this.state.addedToFavorites? "Убрать из избранного" : "В избранное"}
-                        </UI.Button>
+                        <div style={{display: 'flex'}}>
+                            <UI.Button
+                                style={{ marginRight: 8 }}
+                                onClick={this.toggleFavorites.bind(this)}
+                                level={this.state.addedToFavorites? "2" : "buy"}
+                                size="xl" before={this.state.addedToFavorites? <Icon24Like fill={UI.colors.red_light}/> : <Icon24LikeOutline/>}>
+                                {this.state.addedToFavorites? "Убрать из избранного" : "В избранное"}
+                            </UI.Button>
+                            <UI.Button onClick={this.share.bind(this)} size="m" stretched level="secondary">
+                                <Icon24Share/>
+                            </UI.Button>
+                        </div>
                     </UI.Div>
                 </UI.Group>
 
