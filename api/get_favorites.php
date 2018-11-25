@@ -2,6 +2,15 @@
 include_once('../sys/inc/start.php');
 $api = new API();
 
+if(!isset($_GET['page'])) {
+    $error = [
+        "type" => 1,
+        "message" => "Ошибка выбора навигации"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+
 $page = $_GET['page'];
 $offset = $page * 10;
 

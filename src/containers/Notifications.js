@@ -137,10 +137,14 @@ class Notifications extends Component {
                         if(e.time) {
                             description = (
                                 <Moment format="DD.MM.YYYY в H:mm" unix>
-                                    {e.time}
+                                    {(e.time - 60*60*3) + (60*60*this.props.vk.user['timezone'])}
                                 </Moment>
                             );
                         }
+
+                        let name = e.name? (
+                            <span style={{fontWeight: 600, color: "#1d1d1d"}}> {e.name}</span>
+                        )  : "";
 
                         return(
                             <UI.Cell style={{borderBottom: "1px solid #f1f1f1"}} key={i}
@@ -151,6 +155,7 @@ class Notifications extends Component {
                                      size="l"
                                      description={description}>
                                 {e.text}
+                                {name}
                             </UI.Cell>
                         );
                     }) : (

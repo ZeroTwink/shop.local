@@ -87,7 +87,7 @@ class User
     
     protected function _saveUserDataToCache()
     {
-        Cache::set('User.'.$this->_id, $this->_data, 10);
+        Cache::set('User.'.$this->_id_vk, $this->_data, 10);
     }
 
     public function getUser()
@@ -103,7 +103,9 @@ class User
 
         $notifications = [
             "items" => [],
-            "new" => 0
+            "new" => 0,
+            "just_sent" => 0,
+            "end_time" => mktime(0, 0, 0, date('m'), date('d'), 2018)
         ];
 
         if($this->_data['notifications']) {
@@ -120,8 +122,26 @@ class User
 
         $notifications['new'] += 1;
 
+        if($vk_send) {
+            $notifications['just_sent'] += 1;
+
+            if(TIME > $notifications['end_time'] + 60 * 60 * 24) {
+                $notifications['end_time'] = mktime(0, 0, 0, date('m'), date('d'), 2018);
+
+                $notifications['just_sent'] = 1;
+            }
+
+            if($notifications['just_sent'] > 10) {
+                $notifications['just_sent'] = 10;
+
+                $vk_send = false;
+            }
+        }
+
         $this->_update['notifications'] = Json::encode($notifications);
         $this->_data['notifications'] = $this->_update['notifications'];
+
+        $this->_saveUserDataToCache();
 
         // Не отпровлять в ВК
         if(!$vk_send) {

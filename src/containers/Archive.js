@@ -1,60 +1,44 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import axios from '../utils/axios';
 import * as UI from '@vkontakte/vkui';
-import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
-import Icon24Back from '@vkontakte/icons/dist/24/back';
-import Icon16Like from '@vkontakte/icons/dist/16/like';
+
+import axios from '../utils/axios';
 
 import categories from '../utils/categories';
 
-import '@vkontakte/vkui/dist/vkui.css';
+import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
+import Icon24Back from '@vkontakte/icons/dist/24/back';
+
+import Icon16Like from '@vkontakte/icons/dist/16/like';
 
 // import InfiniteScroll from 'react-infinite-scroll-component';
 
-import InfiniteScroll from './InfiniteScroll';
-import * as vkActions from "../actions/vk";
+import InfiniteScroll from '../components/InfiniteScroll';
 
 import getCurrencyCode from '../helpers/getCurrencyCode';
 
-
-class Info extends Component {
+class All extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
             gds: [],
             hasMore: true,
-            seller: {},
             waitingContent: true // Ждем первый запрос контента, крутим спиннер
         };
 
         this.page = 0;
     }
 
+
     componentDidMount() {
         this.loadNextItems();
-
-        if(+this.props.vk.user.id === +this.props.match.params['pId']) {
-            this.setState({
-                seller: this.props.vk.user
-            });
-
-            return;
-        }
-
-        let params = {user_ids: this.props.match.params['pId'], fields: "photo_50,photo_100,city"};
-        vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
-            this.setState({
-                seller: res[0]
-            });
-        });
     }
 
     loadNextItems() {
-        axios.get("/api/gds_user_id.php", {
+        axios.get("/api/archive.php", {
             params: {
-                id: this.props.match.params.pId,
+                // id: this.props.match.params.pId,
                 page: this.page
             }
         }).then(res => {
@@ -65,15 +49,14 @@ class Info extends Component {
             });
 
             this.page++;
+
         }).catch(error => {
             console.log(error);
         });
     }
 
-
     render() {
         const osname = UI.platform();
-
 
         let items = [];
         this.state.gds.map((e, i) => {
@@ -129,20 +112,13 @@ class Info extends Component {
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    Объявления
+                    Архивные
                 </UI.PanelHeader>
 
                 <UI.Group>
-                    <UI.Cell
-                        size="l"
-                        description="Продавец"
-                        before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
-                    >
-                        {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
-                    </UI.Cell>
-                </UI.Group>
-
-                <UI.Group>
+                    <UI.Header level="2">
+                        АРХИВНЫЕ
+                    </UI.Header>
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
@@ -152,7 +128,7 @@ class Info extends Component {
                                 <UI.Spinner size={20} strokeWidth={2}/>
                             </UI.Div>}>
                             {items.length? items : null}
-                            {!this.state.waitingContent && !items.length? <div className="message_empty">Нет объявлений</div> : null}
+                            {!this.state.waitingContent && !items.length? <div className="message_empty">Архив пуст</div> : null}
                         </InfiniteScroll>
                     </UI.List>
                 </UI.Group>
@@ -170,9 +146,8 @@ class Info extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        gds: state.gds,
         vk: state.vk
     }
 }
 
-export default connect(mapStateToProps)(Info);
+export default connect(mapStateToProps)(All);

@@ -14,6 +14,7 @@ import categories from '../../utils/categories';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
+import Icon32Camera from '@vkontakte/icons/dist/32/camera';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
 
@@ -32,7 +33,12 @@ class EditProduct extends Component {
     componentDidMount() {
         this.props.setPopout(<UI.ScreenSpinner />);
 
-        if(this.props.addProduct.arrImagesLoad.length) {
+        this.props.setValues({
+            isEditProduct: this.props.match.params['pId']
+        });
+
+        if(this.props.addProduct.arrImagesLoad.length
+            && +this.props.addProduct.isEditProduct === +this.props.match.params['pId']) {
             this.props.setPopout(null);
 
             return;
@@ -286,6 +292,11 @@ class EditProduct extends Component {
             return;
         }
 
+        if(this.props.addProduct.titleInputValue.length > 100) {
+            this.displayError("Длина названия не должна превышать 100 символов");
+            return;
+        }
+
         if(this.props.addProduct.category) {
             this.formData.append('category', this.props.addProduct.category);
         } else {
@@ -341,30 +352,44 @@ class EditProduct extends Component {
                     return;
                 }
 
+                let productUp = response.data.response["product"];
+
                 let gdsNew = [...this.props.gds['gds_new']];
-                gdsNew.unshift(response.data.response["product"]);
+                let upGds = gdsNew.map((e, i) => {
+                    if(+e['id'] === +productUp['id']) {
+                        return productUp;
+                    }
 
-                let cats = null;
-                if(this.props.gds.categories[this.props.addProduct.category]) {
-                    let cats = {...this.props.gds.categories};
+                    return e;
+                });
 
-                    cats[this.props.addProduct.category].unshift(response.data.response["product"]);
-                }
+                let gdsOpen = [...this.props.gds['open']];
+                let upOpen = gdsOpen.map((e, i) => {
+                    if(+e['id'] === +productUp['id']) {
+                        return productUp;
+                    }
+
+                    return e;
+                });
+
+                // gdsNew.unshift(response.data.response["product"]);
+                //
+                // let cats = null;
+                // if(this.props.gds.categories[this.props.addProduct.category]) {
+                //     let cats = {...this.props.gds.categories};
+                //
+                //     cats[this.props.addProduct.category].unshift(response.data.response["product"]);
+                // }
+                //
 
                 this.props.gdsUpdate({
-                    "gds_new": gdsNew,
-                    "categories": cats? cats : this.props.gds.categories
+                    "gds_new": upGds,
+                    "open": upOpen,
+                    // "categories": cats? cats : this.props.gds.categories
                 });
 
 
-                // let arr = [];
-                // for(let i = 0; i < 5; i++) {
-                //     let data = {
-                //         image: null,
-                //         file: null
-                //     };
-                //     arr.push(data);
-                // }
+
                 this.props.setValues({
                     descriptionInputValue: "",
                     titleInputValue: "",
@@ -386,6 +411,18 @@ class EditProduct extends Component {
         }
 
         let file = e.target.files[0];
+
+        if(file.size > 4 * (1024 * 1024)) {
+            this.displayError("Фаил " + file.name + " весит больше чем 4 Мб");
+
+            return;
+        }
+
+        if(file.type !== "image/jpeg" && file.type !== "image/png") {
+            this.displayError("Фаил " + file.name + " не подходит форматом, дуступные форматы jpeg, jpg, png");
+
+            return;
+        }
 
         this.imageReadPriv(e.target.files[0], (img) => {
             let arr = [...this.props.addProduct.arrImagesLoad];
@@ -458,6 +495,10 @@ class EditProduct extends Component {
             email = this.props.addProduct.emailInputValue;
         }
 
+        if(this.props.addProduct.emailInputValue === "" && this.props.vk.email) {
+            email = this.props.addProduct.emailInputValue;
+        }
+
         return email;
     }
 
@@ -465,6 +506,10 @@ class EditProduct extends Component {
         let phoneNumber = this.props.vk.phoneNumber? this.props.vk.phoneNumber : "";
 
         if(this.props.addProduct.phoneNumberInputValue) {
+            phoneNumber = this.props.addProduct.phoneNumberInputValue;
+        }
+
+        if(this.props.addProduct.phoneNumberInputValue === "" && this.props.vk.phoneNumber) {
             phoneNumber = this.props.addProduct.phoneNumberInputValue;
         }
 
@@ -484,6 +529,22 @@ class EditProduct extends Component {
         }
 
         return subcategories;
+    }
+
+    clickPhoneNumber() {
+        if(this.props.addProduct.phoneNumberInputValue || this.props.vk.phoneNumber) {
+            return;
+        }
+
+        vkActions.fetchPhoneNumber();
+    }
+
+    clickEmail() {
+        if(this.props.addProduct.emailInputValue || this.props.vk.email) {
+            return;
+        }
+
+        vkActions.fetchEmail();
     }
 
     render() {
@@ -527,7 +588,7 @@ class EditProduct extends Component {
                                   onChange={this.onChangePrice.bind(this)} />
 
                         <UI.Input type="text"
-                                  defaultValue={this.props.addProduct.titleInputValue}
+                                  value={this.props.addProduct.titleInputValue}
                                   top={<span>Название <span style={{color: "#4CAF50"}}>*</span></span>}
                                   onChange={this.onChangeTitle.bind(this)} />
 
@@ -574,11 +635,11 @@ class EditProduct extends Component {
                             </UI.FormLayoutGroup>
                         ) : null}
 
-                        <UI.File level="buy" name="img[]"
+                        <UI.File size="xl" name="img[]" accept="image/jpeg,image/png"
                                  onChange={this.fileChange.bind(this)}
                                  top="Фотографии (jpeg, png) вес не более 4 Мб"
                                  multiple
-                                 before={<Icon24Camera />} size="l">
+                                 before={<Icon24Camera />}>
                             Добавить фото
                         </UI.File>
 
@@ -587,9 +648,10 @@ class EditProduct extends Component {
                                 this.props.addProduct.arrImagesLoad.map((e, i) => {
                                     if(e.image === null) {
                                         return (
-                                            <div key={i} className="img_wrap"
-                                                 style={{backgroundImage: "url('/images/no_photo_mini.png')", opacity: 0.5}}>
-
+                                            <div key={i} className="img_wrap">
+                                                <div className="icon_wrap">
+                                                    <Icon32Camera />
+                                                </div>
                                             </div>
                                         )
                                     }
@@ -613,13 +675,13 @@ class EditProduct extends Component {
                 <UI.Group title="Контакты">
                     <UI.FormLayout>
                         <UI.Input type="email" top="E-mail"
-                                  defaultValue={this.getEmail()}
-                                  onClick={() => {vkActions.fetchEmail()}}
+                                  value={this.getEmail()}
+                                  onClick={this.clickEmail.bind(this)}
                                   onChange={this.onChangeEmail.bind(this)}/>
 
                         <UI.Input type="tel" top="Номер телефона"
-                                  defaultValue={this.getPhoneNumber()}
-                                  onClick={() => {vkActions.fetchPhoneNumber()}}
+                                  value={this.getPhoneNumber()}
+                                  onClick={this.clickPhoneNumber.bind(this)}
                                   onChange={this.onChangePhoneNumber.bind(this)}/>
                     </UI.FormLayout>
                 </UI.Group>

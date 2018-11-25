@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import * as UI from '@vkontakte/vkui';
 
+// import VKConnect from '../utils/VKConnect';
+
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
@@ -16,7 +18,23 @@ class About extends Component {
 
 
     componentDidMount() {
+        if(this.props.match.params.pId) {
+            let id = document.getElementById(this.props.match.params.pId);
 
+            if(!id) {
+                return;
+            }
+
+            // VKConnect.send("VKWebAppScroll", {"top": id.offsetTop, "speed": 600});
+
+            let timer = null;
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                window.scrollTo(0, id.offsetTop);
+
+                clearTimeout(timer);
+            }, 500);
+        }
     }
 
     render() {
@@ -54,6 +72,18 @@ class About extends Component {
                         Теперь отсутствует необходимость открывать сразу несколько сторонних приложений,
                         чем в разы ускоряется процедура использования и, что самое важное, значительно экономится
                         Ваше время.
+                    </UI.Div>
+                </UI.Group>
+
+                <UI.Group id="archive" title="Архив">
+                    <UI.Div>
+                        Архив - место, куда попадает объявление по истечению 30 дней, с момента его публикации.
+                        Объявление не будет отображаться ни в одной из имеющихся категорий.<br />
+
+                        В архиве объявление хранится 7 дней, после чего оно безвозвратно удаляется.<br />
+
+                        Владелец объявления в течении 7 дней может восстановить свое объявление нажав
+                        на кнопку "Восстановить".
                     </UI.Div>
                 </UI.Group>
             </UI.Panel>

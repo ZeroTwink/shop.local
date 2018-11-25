@@ -274,8 +274,8 @@ class Filters extends Component {
                                 <option key="0" value="0">Новые (по дате)</option>
                                 <option key="1" value="1">Сперва дешевле</option>
                                 <option key="2" value="2">Сперва дороже</option>
-                                <option key="3" value="3">Новые (по дате) - дешевле</option>
-                                <option key="4" value="4">Новые (по дате) - дороже</option>
+                                {/*<option key="3" value="3">Новые (по дате) - дешевле</option>*/}
+                                {/*<option key="4" value="4">Новые (по дате) - дороже</option>*/}
                             </UI.Select>
 
                             <UI.Select value={this.props.filters.category}

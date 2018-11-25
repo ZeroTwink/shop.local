@@ -10,6 +10,7 @@ import rootReducer from './reducers/index';
 
 import PageLoader from './components/PageLoader';
 import App from './components/App';
+import AdminRouters from './components/AdminPanel/AdminRouters';
 
 import './index.scss';
 
@@ -28,6 +29,7 @@ ReactDOM.render(
         <HashRouter>
             <Switch>
                 <Route exact path="/" component={PageLoader}/>
+                <Route exact path="/admin" component={AdminRouters}/>
                 <Route path="/:pageId?/:pId?" component={App}/>
             </Switch>
         </HashRouter>

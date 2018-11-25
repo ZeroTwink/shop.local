@@ -24,7 +24,9 @@ class All extends Component {
         this.state = {
             gds: [],
             hasMore: true,
-            waitingContent: true // Ждем первый запрос контента, крутим спиннер
+            waitingContent: true, // Ждем первый запрос контента, крутим спиннер
+            title: "НОВЫЕ ТОВАРЫ",
+            headerTitle: "Новые"
         };
 
         this.page = 0;
@@ -32,6 +34,22 @@ class All extends Component {
 
 
     componentDidMount() {
+        if(!categories[this.props.match.params.pId] && this.props.match.params.pId !== 'new') {
+            this.setState({
+                waitingContent: false
+            });
+
+            return;
+        }
+
+        let title = this.props.match.params.pId === 'new'? "НОВЫЕ ТОВАРЫ" : categories[this.props.match.params.pId]['title'];
+        let headerTitle = this.props.match.params.pId === 'new'? "Новые" : "Категория";
+
+        this.setState({
+            title: title,
+            headerTitle: headerTitle
+        });
+
         this.loadNextItems();
     }
 
@@ -92,7 +110,7 @@ class All extends Component {
                                  <Icon16Like fill="#fb7788"/>
                                  <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{e.favorites}</div>
                                  <img style={{width: 16, height: 16, opacity: 0.4}}
-                                      src="/images/view16.png" alt="" />
+                                      src="/images/view32.png" alt="" />
                                  <div style={{margin: "-1px 0 0 6px"}}>{e.views}</div>
                              </div>
                          }
@@ -112,12 +130,12 @@ class All extends Component {
                     left={<UI.HeaderButton onClick={() => this.props.history.goBack()}>{osname === UI.IOS ?
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
-                    Новые
+                    {this.state.headerTitle}
                 </UI.PanelHeader>
 
                 <UI.Group>
                     <UI.Header level="2">
-                        НОВЫЕ ТОВАРЫ
+                        {this.state.title}
                     </UI.Header>
                     <UI.List className="new_gds">
                         <InfiniteScroll

@@ -39,7 +39,6 @@ class SelectCity extends Component {
             need_all: 0
         };
         vkActions.apiRequest("database.getCities", params, this.props.vk.accessToken, res => {
-            console.log(res);
             this.setState({
                 vkCities: res
             });

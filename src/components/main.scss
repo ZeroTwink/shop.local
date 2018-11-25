@@ -48,8 +48,10 @@
     .text {
       text-align: center;
       height: 30px;
+      max-width: 90px;
       overflow: hidden;
       text-overflow: ellipsis;
+      word-wrap: break-word;
       color: #747474;
     }
   }
@@ -75,6 +77,17 @@
     height: 190px;
     background-position: center 50%;
     background-color: #cacaca;
+
+    .header_title {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 4px 14px;
+      //transform: skewX(-22deg);
+      border-radius: 0 0 6px 0;
+      color: #fff;
+      background-color: rgba(62, 139, 218, 0.6);
+    }
 
     .title_wrap {
       position: absolute;

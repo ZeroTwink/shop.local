@@ -105,7 +105,7 @@ class Info extends Component {
         }
 
         if(isProductOpen) {
-            let params = {user_ids: isProductOpen['id_vk'], fields: "photo_50,city"};
+            let params = {user_ids: isProductOpen['id_vk'], fields: "photo_50,city,can_write_private_message"};
             vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
                 this.setState({
                     seller: res[0]
@@ -131,7 +131,7 @@ class Info extends Component {
                 return;
             }
 
-            let params = {user_ids: res.data.response.product['id_vk'], fields: "photo_50,city"};
+            let params = {user_ids: res.data.response.product['id_vk'], fields: "photo_50,city,can_write_private_message"};
             vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
                 this.setState({
                     seller: res[0]
@@ -192,14 +192,16 @@ class Info extends Component {
             title = "...Читать дальше";
         }
 
+        let title2 = "";
         if(t.length < 1) {
-            title = "Без описания";
+            title2 = "Без описания";
         }
 
         return (
             <div>
                 {t}
                 <UI.Link onClick={() => this.setState({displayAllText: true})}>{title}</UI.Link>
+                {title2}
             </div>
         );
     }
@@ -251,6 +253,27 @@ class Info extends Component {
             });
         }
 
+        let gdsNew = [...this.props.gds['gds_new']];
+
+        let indexOnArr = null;
+        gdsNew.filter((e, i) => {
+            if(+e.id === +this.props.match.params.pId) {
+                indexOnArr = i;
+                return true;
+            }
+
+            return false;
+        });
+
+        if(type === "add") {
+            gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] + 1;
+        } else {
+            gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] - 1;
+        }
+
+        this.props.gdsUpdate({
+            "gds_new": gdsNew
+        });
 
         axios.get("/api/favorites.php", {
             params: {
@@ -359,6 +382,41 @@ class Info extends Component {
     }
 
 
+    restoreArchiveGds() {
+        this.props.setPopout(<UI.ScreenSpinner />);
+
+        axios.get("/api/archive.php", {
+            params: {
+                id: this.props.match.params.pId
+            }
+        }).then(res => {
+            console.log(res);
+
+            this.setState({
+                product: res.data.response['product']
+            });
+
+            let gdsOpen = [...this.props.gds['open']];
+            let upOpen = gdsOpen.map((e, i) => {
+                if(+e['id'] === +res.data.response['product']['id']) {
+                    return res.data.response['product'];
+                }
+
+                return e;
+            });
+
+            this.props.gdsUpdate({
+                "open": upOpen
+            });
+
+            this.props.setPopout(null);
+
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
+
     render() {
         const osname = UI.platform();
 
@@ -418,6 +476,23 @@ class Info extends Component {
                             </UI.Cell>
                         </UI.List>
                     </UI.HeaderContext>
+                ) : null}
+
+                {+product['archive']? (
+                    <UI.Group style={{background: "#fdfcea"}}>
+                        <UI.Div>
+                            Данное объявление является архивным. Объявление будет удалено в
+                            течении 7 дней, если владелец его не обновит.
+                        </UI.Div>
+
+                        {+this.props.vk.user.id === +product['id_vk']? (
+                            <UI.Div>
+                                <UI.Button onClick={this.restoreArchiveGds.bind(this)} size="xl">
+                                    Восстановить
+                                </UI.Button>
+                            </UI.Div>
+                        ) : null}
+                    </UI.Group>
                 ) : null}
 
                 <UI.Group title="Фотографии">
@@ -509,7 +584,7 @@ class Info extends Component {
                                     <UI.Cell>
                                         <UI.InfoRow title="Дата публикации">
                                             <Moment format="DD.MM.YYYY в H:mm" unix>
-                                                {product.time}
+                                                {(product.time - 60*60*3) + (60*60*this.props.vk.user['timezone'])}
                                             </Moment>
                                         </UI.InfoRow>
                                     </UI.Cell>
@@ -607,12 +682,24 @@ class Info extends Component {
                                 </UI.List>
 
                                 <UI.Div>
-                                    <UI.Link style={{color: "#fff"}}
-                                             href={"https://vk.com/im?sel=" + this.state.seller['id']}>
-                                        <UI.Button before={<Icon24LogoVk fill="#fff"/>} size="xl">
-                                            Написать продавцу
-                                        </UI.Button>
-                                    </UI.Link>
+                                    {this.state.seller['can_write_private_message'] > 0? (
+                                        <UI.Link style={{color: "#fff"}}
+                                                 href={"https://vk.com/im?sel=" + this.state.seller['id']}>
+                                            <UI.Button before={<Icon24LogoVk fill="#fff"/>} size="xl">
+                                                Написать продавцу
+                                            </UI.Button>
+                                        </UI.Link>
+                                    ) : (
+                                        <React.Fragment>
+                                            {/*<UI.Button style={{color: "#a7c1e8"}} level="secondary"*/}
+                                                       {/*before={<Icon24LogoVk fill="#a7c1e8"/>} size="xl">*/}
+                                                {/*Написать продавцу*/}
+                                            {/*</UI.Button>*/}
+                                            <div style={{color: "#888888", textAlign: "center"}}>
+                                                У пользователя закрыты личные сообщения
+                                            </div>
+                                        </React.Fragment>
+                                    )}
                                 </UI.Div>
                             </div>
                         )

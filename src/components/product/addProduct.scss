@@ -1,16 +1,24 @@
 .file_img_wrapper {
   margin: -12px 16px;
   max-width: 340px;
+  display: flex;
 
   .img_wrap {
-    display: inline-block;
     width: 17%;
     height: 44px;
     margin-left: 2.9%;
-    border: 1px solid #d0dec8;
+    border: 1px solid #c8d4de;
     background-size: cover;
     background-position: center 35%;
-    background-color: #f4fbf0;
+    background-color: #f8fbff;
+
+    .icon_wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      opacity: 0.2;
+    }
 
     &:first-child {
       margin-left: 0;

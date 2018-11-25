@@ -3,6 +3,11 @@ include_once('../sys/inc/start.php');
 $api = new API();
 
 if(!isset($_GET['id'])) {
+    $error = [
+        "type" => 1,
+        "message" => "Ошибка параметров"
+    ];
+    $api->assign("error", $error);
     exit;
 }
 
@@ -52,7 +57,8 @@ if($user->access > 6) {
     $ank = new User($product['id_vk']);
 
     $params = [
-        "text" => "Администрация удалила ваше объявление " . Text::substr($product['title'], 26)
+        "text" => "Администрация удалила Ваше объявление",
+        "name" => $product['title']
     ];
 
 //    if($product['images']) {

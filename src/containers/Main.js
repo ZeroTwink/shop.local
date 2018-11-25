@@ -15,7 +15,7 @@ import * as sysActions from '../actions/sys';
 import '../components/main.scss';
 
 import Icon16Like from '@vkontakte/icons/dist/16/like';
-import VKConnect from "../utils/VKConnect";
+// import VKConnect from "../utils/VKConnect";
 
 class Main extends Component {
     constructor(props) {
@@ -36,11 +36,7 @@ class Main extends Component {
     }
 
     componentWillMount() {
-        // TODO убрать перед финальным
-        // if(process.env.NODE_ENV !== 'production' && !this.props.gds['gds_new']) {
-        //     this.props.history.push("/");
-        //
-        // }
+
     }
 
 
@@ -48,14 +44,11 @@ class Main extends Component {
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader>
-                    <img className={UI.getClassName("logo_header")} src="/images/logo_header1.png" alt="" />
+                    <img className={UI.getClassName("logo_header")} src="/images/logo_header3.png" alt="" />
                 </UI.PanelHeader>
 
                 <div>
                     <UI.Group>
-                        <UI.Header level="2">
-                            РЕКОМЕНДУЕМОЕ
-                        </UI.Header>
                         <UI.Gallery
                             slideWidth="100%"
                             style={{ height: 190 }}
@@ -74,7 +67,7 @@ class Main extends Component {
                     <UI.Group>
                         <UI.Header onClick={() => (this.props.history.push("/all/new"))} level="2"
                                    aside={<UI.Link>Показать все</UI.Link>}>
-                            НОВЫЕ ОБЪЯВЛЕННИЯ
+                            НОВЫЕ
                         </UI.Header>
                         <UI.List className="new_gds">
                             {this.props.gds.gds_new.length? this.props.gds.gds_new.map((e, i) => {
@@ -110,7 +103,7 @@ class Main extends Component {
                                                      <Icon16Like fill="#fb7788"/>
                                                      <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{e.favorites}</div>
                                                      <img style={{width: 16, height: 16, opacity: 0.4}}
-                                                          src="/images/view16.png" alt="" />
+                                                          src="/images/view32.png" alt="" />
                                                      <div style={{margin: "-1px 0 0 6px"}}>{e.views}</div>
                                                  </div>
                                              }
@@ -127,7 +120,9 @@ class Main extends Component {
                     {Object.keys(this.props.gds.categories).map((key) => (
                         this.props.gds.categories[key].length? (
                             <UI.Group key={key} style={{ paddingBottom: 16 }}>
-                                <UI.Header level="2">
+                                <UI.Header level="2"
+                                           onClick={() => this.props.gds.categories[key].length > 9? this.props.history.push("/all/" + key) : null}
+                                           aside={this.props.gds.categories[key].length > 9? <UI.Link>Все</UI.Link> : null}>
                                     {categories[key]['title']}
                                 </UI.Header>
                                 <UI.HorizontalScroll>

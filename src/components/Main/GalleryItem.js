@@ -22,6 +22,9 @@ export default class GalleryItem extends Component {
         return (
             <div className="img_gallery_wrap" style={style}
                  onClick={() => (history.push("/product/" + ad.id))}>
+                <div className="header_title">
+                    Рекомендуемое
+                </div>
                 <div className="title_wrap">
                     <div className="title">
                         {ad.title}

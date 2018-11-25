@@ -25,14 +25,12 @@ class PageLoader extends Component {
             accessTokenFailed: "",
             user: {}
         };
-
-        console.log($_GET);
     }
 
     componentDidMount() {
         this.props.initApp();
 
-        this.step1();
+        this.step0();
     }
 
     displayError(message) {
@@ -51,32 +49,32 @@ class PageLoader extends Component {
         );
     }
 
-    // step0() {
-    //     let clb = (e) => {
-    //         let data = e.detail['data'];
-    //         let type = e.detail['type'];
-    //
-    //         if("VKWebAppGetClientVersionResult" === type) {
-    //
-    //             let version = data.version.match(/[0-9]+\.[0-9]+/)[0].split(".");
-    //
-    //             if((data.platform === 'android' && (+version[0] < 5 || +version[1] < 20))
-    //                 || (data.platform === 'ios' && +version[0] < 5)) {
-    //                 this.displayError("Для работы сервиса необходимо обновить официальное приложение VK");
-    //
-    //                 return false;
-    //             }
-    //
-    //             VKConnect.unsubscribe(clb);
-    //
-    //             this.step1();
-    //         }
-    //     };
-    //
-    //     VKConnect.subscribe(clb);
-    //
-    //     VKConnect.send('VKWebAppGetClientVersion', {});
-    // }
+    step0() {
+        let clb = (e) => {
+            let data = e.detail['data'];
+            let type = e.detail['type'];
+
+            if("VKWebAppGetClientVersionResult" === type) {
+
+                let version = data.version.match(/[0-9]+\.[0-9]+/)[0].split(".");
+
+                if((data.platform === 'android' && ((+version[0] === 5 && +version[1] < 19) || +version[0] < 5))
+                    || (data.platform === 'ios' && +version[0] < 5)) {
+                    this.displayError("Для работы сервиса необходимо обновить официальное приложение VK");
+
+                    return false;
+                }
+
+                VKConnect.unsubscribe(clb);
+
+                this.step1();
+            }
+        };
+
+        VKConnect.subscribe(clb);
+
+        VKConnect.send('VKWebAppGetClientVersion', {});
+    }
 
     step1() {
         let clb = (e) => {

@@ -53,6 +53,15 @@ if(process.env.NODE_ENV === 'production') {
 
             return;
         }
+        if("VKWebAppScroll" === name) {
+            let id = setTimeout(() => {
+                window.scrollTo(0, param.top);
+
+                clearTimeout(id);
+            }, 500);
+
+            return;
+        }
 
 
         VKConnectClon.send(name, param);
@@ -96,6 +105,7 @@ if(process.env.NODE_ENV === 'production') {
     res.VKWebAppGetPhoneNumber.data = {
         "type": "VKWebAppGetPhoneNumberResult",
         "data": {
+            "sign": "Y1C99xnbEaR8Wred_LSicu7yUQnRdcrvL2-Lco96nqc",
             "phone_number": "79111234567"
         }
     };
@@ -103,10 +113,18 @@ if(process.env.NODE_ENV === 'production') {
     res.VKWebAppGetEmail.data = {
         "type": "VKWebAppGetEmailResult",
         "data": {
+            "sign": "Y1C99xnbEaR8Wred_LSicu7yUQnRdcrvL2-Lco96nqc",
             "email": "test@gmail.com"
         }
     };
 
+    res.VKWebAppGetClientVersion.data = {
+        "type": "VKWebAppGetClientVersionResult",
+        "data": {
+            "platform": "android",
+            "version": "5.24"
+        }
+    };
 
 }
 

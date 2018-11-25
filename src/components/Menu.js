@@ -5,12 +5,14 @@ import * as UI from '@vkontakte/vkui';
 // import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 // import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24List from '@vkontakte/icons/dist/24/list';
-import Icon24Favorite from '@vkontakte/icons/dist/24/favorite';
+// import Icon24Favorite from '@vkontakte/icons/dist/24/favorite';
 import Icon24About from '@vkontakte/icons/dist/24/about';
 import Icon24User from '@vkontakte/icons/dist/24/user';
 import Icon24Help from '@vkontakte/icons/dist/24/help';
 // import Icon24Filter from '@vkontakte/icons/dist/24/filter';
 import Icon24Notification from '@vkontakte/icons/dist/24/notification';
+import Icon24Replay from '@vkontakte/icons/dist/24/replay';
+import Icon24Like from '@vkontakte/icons/dist/24/like';
 
 
 class Menu extends Component {
@@ -57,9 +59,13 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/gds_user_id/" + this.props.vk.user.id))}>
                             Мои объявления
                         </UI.Cell>
-                        <UI.Cell before={<Icon24Favorite/>}
+                        <UI.Cell before={<Icon24Like/>}
                                  onClick={() => (this.props.history.push("/favorites"))}>
                             Избранное
+                        </UI.Cell>
+                        <UI.Cell before={<Icon24Replay/>}
+                                 onClick={() => (this.props.history.push("/archive"))}>
+                            Архивные
                         </UI.Cell>
                         {/*<UI.Cell before={<Icon24Filter/>}*/}
                                  {/*onClick={() => (this.props.history.push("/filters"))}>*/}
@@ -69,6 +75,10 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/set_notifications"))}>
                             Настроить уведомления
                         </UI.Cell>
+                        {/*<UI.Cell before={<Icon24Notification/>}*/}
+                                 {/*onClick={() => (this.props.history.push("/admin"))}>*/}
+                            {/*Админ панель*/}
+                        {/*</UI.Cell>*/}
                         {/*<UI.Cell before={<Icon24Settings/>}*/}
                                  {/*onClick={() => (this.props.history.push("/product/1"))}>*/}
                             {/*Настройки*/}
@@ -80,7 +90,7 @@ class Menu extends Component {
                     <UI.List>
                         <UI.Cell before={<Icon24About/>}
                                  onClick={() => (this.props.history.push("/about"))}>
-                            О приложении
+                            Информация
                         </UI.Cell>
                         <UI.Link href="https://vk.com/club171573725">
                             <UI.Cell before={<Icon24User/>}>

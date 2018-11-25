@@ -82,10 +82,10 @@ if(isset($_GET['sorting']) && !empty($_GET['sorting'])) {
     } elseif($type_sorting == 2) {
         $sorting = "`price` DESC";
     } elseif($type_sorting == 3) {
-        $sorting = "`id` DESC";
+        $sorting = "`time` DESC";
         $sorting_two = "`tmp`.`price` ASC";
     } elseif($type_sorting == 4) {
-        $sorting = "`id` DESC";
+        $sorting = "`time` DESC";
         $sorting_two = "`tmp`.`price` DESC";
     }
 }
@@ -96,13 +96,13 @@ $offset = $page * 10;
 if(isset($sorting_two)) {
     $res = Db::me()->prepare("
       SELECT * FROM (SELECT * FROM `gds` 
-      WHERE ".implode("AND ", $where)." ORDER BY $sorting LIMIT 100
+      WHERE ".implode("AND ", $where)." AND `archive` = 0 ORDER BY $sorting LIMIT 100
     ) AS tmp ORDER BY $sorting_two");
     $res->execute($replace);
     $search = $res->fetchAll();
 } else {
     $res = Db::me()->prepare("SELECT * FROM `gds` 
-    WHERE ".implode("AND ", $where)." ORDER BY $sorting LIMIT $offset, 10");
+    WHERE ".implode("AND ", $where)." AND `archive` = 0 ORDER BY $sorting LIMIT $offset, 10");
     $res->execute($replace);
     $search = $res->fetchAll();
 }

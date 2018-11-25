@@ -4,6 +4,7 @@ import axios from '../utils/axios';
 import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
+import Icon24Chevron from '@vkontakte/icons/dist/24/chevron';
 
 import * as userActions from "../actions/user";
 import * as vkActions from '../actions/vk';
@@ -15,6 +16,13 @@ class SetNotifications extends Component {
 
         this.state = {
 
+        };
+
+        this.setN = {
+            delete: props.user['set_notifi_delete'],
+            edit: props.user['set_notifi_edit'],
+            archive: props.user['set_notifi_archive'],
+            system: props.user['set_notifi_system'],
         };
 
     }
@@ -40,22 +48,32 @@ class SetNotifications extends Component {
                 update['set_notifications'] = set;
                 break;
             case "delete" :
-                update['set_notifi_delete'] = set;
+                update['set_notifi_delete'] = this.setN['delete'] = set;
                 break;
             case "edit" :
-                update['set_notifi_edit'] = set;
+                update['set_notifi_edit'] = this.setN['edit'] = set;
                 break;
             case "archive" :
-                update['set_notifi_archive'] = set;
+                update['set_notifi_archive'] = this.setN['archive'] = set;
                 break;
             case "system" :
-                update['set_notifi_system'] = set;
+                update['set_notifi_system'] = this.setN['system'] = set;
                 break;
             default:
                 // nop
         }
 
         if(!update) {
+            return;
+        }
+
+        if(+!this.setN['delete']
+            && +!this.setN['edit']
+            && +!this.setN['archive']
+            && +!this.setN['system']) {
+
+            vkActions.denyNotifications();
+
             return;
         }
 
@@ -150,7 +168,7 @@ class SetNotifications extends Component {
                     <UI.List>
                         <UI.Cell onClick={this.deleteNotification.bind(this)}
                                  multiline
-                                 description="Если администрации или по истичению срока давноесте объявление будет удалено"
+                                 description="Если администрацией будет удалено Ваше объявление, либо по истечению срока его давности."
                                  asideContent={<UI.Switch
                                      onChange={() => (null)}
                                      disabled={!this.props.user['set_notifications']}
@@ -160,7 +178,7 @@ class SetNotifications extends Component {
                         </UI.Cell>
                         <UI.Cell onClick={this.editNotification.bind(this)}
                                  multiline
-                                 description="Если администрации отредактирует объявление"
+                                 description="Если администрацией будут внесены правки."
                                  asideContent={<UI.Switch
                                      onChange={() => (null)}
                                      disabled={!this.props.user['set_notifications']}
@@ -170,7 +188,7 @@ class SetNotifications extends Component {
                         </UI.Cell>
                         <UI.Cell onClick={this.archiveNotification.bind(this)}
                                  multiline
-                                 description="Объявление по истечению срока, перемещено в архи"
+                                 description="Объявление перемещено в архив по истечению срока давности."
                                  asideContent={<UI.Switch
                                      onChange={() => (null)}
                                      disabled={!this.props.user['set_notifications']}
@@ -180,7 +198,7 @@ class SetNotifications extends Component {
                         </UI.Cell>
                         <UI.Cell onClick={this.systemNotification.bind(this)}
                                  multiline
-                                 description="Акции, скиндки, важные события"
+                                 description="Информация об акциях, скидках, а также рвзличных важных событиях, касающихся функционированию приложения."
                                  asideContent={<UI.Switch
                                      onChange={() => (null)}
                                      disabled={!this.props.user['set_notifications']}
@@ -189,6 +207,14 @@ class SetNotifications extends Component {
                             {this.props.user['set_notifications']? "Системные" : <span style={{color: "#b1b1b1"}}>Системные</span>}
                         </UI.Cell>
                     </UI.List>
+                </UI.Group>
+
+                <UI.Group title="Информация">
+                    <UI.Cell onClick={() => this.props.history.push('/about/archive')} before={<Icon24Chevron/>}>
+                        <UI.Link>
+                            Архив?
+                        </UI.Link>
+                    </UI.Cell>
                 </UI.Group>
             </UI.Panel>
         )

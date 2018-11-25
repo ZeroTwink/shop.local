@@ -2,7 +2,7 @@
 include_once('../sys/inc/start.php');
 $api = new API();
 
-if(!isset($_GET['id']) || empty($_GET['id'])) {
+if(!isset($_GET['id'])) {
     $api->assign("error", ['type' => 1, 'message' => 'Не передан id']);
     exit;
 }

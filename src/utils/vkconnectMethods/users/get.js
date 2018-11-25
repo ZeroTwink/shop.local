@@ -3,6 +3,7 @@ export default function get(params) {
         "id": 30333918,
         "first_name": "Сергей",
         "last_name": "Качалка",
+        "can_write_private_message": 0,
         "city": {
             "id": 2256,
             "title": "Горловка"

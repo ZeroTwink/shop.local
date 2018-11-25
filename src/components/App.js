@@ -9,6 +9,7 @@ import SetNotifications from '../containers/SetNotifications';
 import Notifications from '../containers/Notifications';
 import SelectCityFilters from '../containers/SelectCityFilters';
 import SelectCountryFilters from '../containers/SelectCountryFilters';
+import Archive from '../containers/Archive';
 import Info from './product/Info';
 import AddProduct from './product/AddProduct';
 import EditProduct from './product/EditProduct';
@@ -106,6 +107,7 @@ class App extends Component {
                         <Rules id="rules" {...this.props}/>
                         <SetNotifications id="set_notifications" {...this.props}/>
                         <Notifications id="notifications" {...this.props}/>
+                        <Archive id="archive" {...this.props}/>
                     </UI.View>
 
                     <UI.View id="choose" activePanel={this.props['sys']['active']['panel']}>

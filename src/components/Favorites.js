@@ -99,7 +99,7 @@ class Favorites extends Component {
                                  <Icon16Like fill="#fb7788"/>
                                  <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{e.favorites}</div>
                                  <img style={{width: 16, height: 16, opacity: 0.4}}
-                                      src="/images/view16.png" alt="" />
+                                      src="/images/view32.png" alt="" />
                                  <div style={{margin: "-1px 0 0 6px"}}>{e.views}</div>
                              </div>
                          }
@@ -122,7 +122,7 @@ class Favorites extends Component {
                     Избранное
                 </UI.PanelHeader>
 
-                <UI.Group>
+                <UI.Group title="Избранное">
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}

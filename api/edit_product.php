@@ -113,110 +113,158 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
 
 $replace = [];
 
-if(isset($_POST['title']) && Text::strlen($_POST['title']) > 2) {
-    $replace[] = $_POST['title'];
-} else {
-    $error = [
-        "type" => 3,
-        "message" => "Название должно быть более 3 символов"
-    ];
-    $api->assign("error", $error);
+$title = Checks::titleProduct($_POST['title']);
+if(isset($title['error'])) {
+    $api->assign("error", $title['error']);
+    exit;
 }
-if(isset($_POST['category'])) {
-    $replace[] = $_POST['category'];
-} else {
-    $error = [
-        "type" => 3,
-        "message" => "Не выбрана категория"
-    ];
-    $api->assign("error", $error);
+$replace[] = $title;
+
+$category = Checks::category($_POST['category']);
+if(isset($category['error'])) {
+    $api->assign("error", $category['error']);
+    exit;
 }
-if(isset($_POST['subcategory'])) {
-    $replace[] = $_POST['subcategory'];
-} else {
-    $error = [
-        "type" => 3,
-        "message" => "Не выбрана подкатегория"
-    ];
-    $api->assign("error", $error);
+$replace[] = $category;
+
+$subcategory = Checks::subcategory($_POST['subcategory'], $_POST['category']);
+if(isset($subcategory['error'])) {
+    $api->assign("error", $subcategory['error']);
+    exit;
 }
-if(isset($_POST['email'])) {
-    $replace[] = $_POST['email'];
+$replace[] = $subcategory;
+
+
+if(isset($_POST['email']) && !empty($_POST['email'])) {
+    $email = Checks::email($_POST['email']);
+    if(isset($email['error'])) {
+        $api->assign("error", $email['error']);
+        exit;
+    }
+    $replace[] = $email;
 } else {
     $replace[] = "";
 }
+
 if(isset($_POST['phone_number'])) {
     $replace[] = $_POST['phone_number'];
 } else {
     $replace[] = "";
 }
-if(isset($_POST['price'])) {
-    $replace[] = $_POST['price'];
-} else {
+
+if(!isset($_POST['price']) || !is_numeric($_POST['price'])) {
     $error = [
         "type" => 3,
-        "message" => "Не указана цена"
+        "message" => "Некорректно указана цена"
     ];
     $api->assign("error", $error);
+    exit;
 }
-if(isset($_POST['state'])) {
-    $replace[] = $_POST['state'];
-} else {
+$replace[] = abs($_POST['price']);
+
+if(!isset($_POST['state']) || $_POST['state'] < 0 || $_POST['state'] > 1) {
+    $error = [
+        "type" => 3,
+        "message" => "Некорректно указано состояние товара"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+$replace[] = (int)$_POST['state'];
+
+if(!isset($_POST['state_balls']) || $_POST['state_balls'] > 5 || $_POST['state_balls'] < 0) {
     $error = [
         "type" => 3,
         "message" => "Не указано стостояния продоваемого товара"
     ];
     $api->assign("error", $error);
+    exit;
 }
-if(isset($_POST['state_balls'])) {
-    $replace[] = $_POST['state_balls'];
-} else {
-    $error = [
-        "type" => 3,
-        "message" => "Не указано стостояния продоваемого товара"
-    ];
-    $api->assign("error", $error);
-}
+$replace[] = (int)$_POST['state_balls'];
+
 if(isset($_POST['description'])) {
+    if(Text::strlen($_POST['description']) > 5000) {
+        $error = [
+            "type" => 3,
+            "message" => "Описание превысило лимит в 5000 символов"
+        ];
+        $api->assign("error", $error);
+        exit;
+    }
     $replace[] = $_POST['description'];
 } else {
     $replace[] = "";
 }
-if(isset($_POST['country_id']) && !empty($_POST['country_id']) && $_POST['country_id'] <= 4) {
-    $replace[] = $_POST['country_id'];
-} else {
+
+
+
+
+if(!isset($_POST['country_id']) || $_POST['country_id'] < 0 || $_POST['country_id'] > 4) {
     $error = [
         "type" => 3,
         "message" => "Не выбрана страна"
     ];
     $api->assign("error", $error);
+    exit;
 }
-if(isset($_POST['country_title'])  && Text::strlen($_POST['country_title']) > 1) {
-    $replace[] = $_POST['country_title'];
-} else {
+$replace[] = (int)$_POST['country_id'];
+
+$countriesArr = [
+    "1" => "Россия",
+    "2" => "Украина",
+    "3" => "Беларусь",
+    "4" => "Казахстан"
+];
+
+if(!isset($countriesArr[$_POST['country_id']])) {
     $error = [
         "type" => 3,
-        "message" => "Возникла внутрення ошибка, выбор страны"
+        "message" => "Возникла ошибка выбора страны"
     ];
     $api->assign("error", $error);
+    exit;
 }
-if(isset($_POST['city_id'])) {
-    $replace[] = $_POST['city_id'];
-} else {
+$replace[] = $countriesArr[$_POST['country_id']];
+
+
+
+if(!isset($_POST['city_id']) || empty($_POST['city_id']) || !is_numeric($_POST['city_id'])) {
+    $error = [
+        "type" => 3,
+        "message" => "Возникла ошибка выбора города"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+
+$request_params = array(
+    "country_id" => $_POST['country_id'],
+    'q' => Text::substr($_POST['city_title'], 15, 0, ""),
+    'v' => V_API,
+    'access_token' => SERVER_KEY
+);
+$get_params = http_build_query($request_params);
+$result = json_decode(file_get_contents('https://api.vk.com/method/database.getCities?'. $get_params), true);
+
+$q = false;
+if(isset($result['response']) && isset($result['response']['items'])) {
+    foreach ($result['response']['items'] AS $key => $val) {
+        if($val['id'] == $_POST['city_id']) {
+            $q = true;
+
+            $replace[] = $val['id']; // id города
+            $replace[] = $val['title']; // title города
+        }
+    }
+}
+
+if(!$q) {
     $error = [
         "type" => 3,
         "message" => "Не выбран город"
     ];
     $api->assign("error", $error);
-}
-if(isset($_POST['city_title'])  && Text::strlen($_POST['city_title']) > 1) {
-    $replace[] = $_POST['city_title'];
-} else {
-    $error = [
-        "type" => 3,
-        "message" => "Возникла внутрення ошибка, выбор города"
-    ];
-    $api->assign("error", $error);
+    exit;
 }
 
 
@@ -288,7 +336,8 @@ if($user->access > 6) {
     $ank = new User($data['id_vk']);
 
     $params = [
-        "text" => "Администратор отредактировал ваше объявление " . Text::substr($data['title'], 26)
+        "text" => "Администратор отредактировал Ваше объявление",
+        "name" => $data['title']
     ];
 
     if($data['images']) {
@@ -305,3 +354,10 @@ if($user->access > 6) {
 
     $api->assign("result", $result);
 }
+
+
+$res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id` = ? LIMIT 1");
+$res->execute([$id]);
+$update_product = $res->fetch();
+
+$api->assign("product", $update_product);
