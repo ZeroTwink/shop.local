@@ -10,6 +10,7 @@ import Icon24Notification from '@vkontakte/icons/dist/24/notification';
 import * as userActions from "../actions/user";
 
 import * as vkActions from '../actions/vk';
+// import * as sysActions from "../actions/sys";
 
 
 class Notifications extends Component {
@@ -23,6 +24,8 @@ class Notifications extends Component {
     }
 
     componentDidMount() {
+        window.scroll(0, 0);
+
         if(this.props.user['notifications']['new']) {
 
             let notifications = {...this.props.user['notifications']};
@@ -45,8 +48,6 @@ class Notifications extends Component {
         }
     }
 
-
-
     render() {
         // const osname = UI.platform();
 
@@ -63,7 +64,7 @@ class Notifications extends Component {
                         <UI.Cell
                             size="l"
                             multiline
-                            description="Мы не сможем присалать вам уведомления, о важных событиях"
+                            description="Мы не сможем присалать Вам уведомления о важных событиях"
                             before={
                                 <UI.Avatar style={{ background: UI.colors.blue_overlight_3 }} size={32}>
                                     <Icon24Notification fill={UI.colors.white} />
@@ -174,7 +175,8 @@ class Notifications extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        vk: state.vk
+        vk: state.vk,
+        sys: state.sys
     }
 }
 

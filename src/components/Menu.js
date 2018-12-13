@@ -26,7 +26,7 @@ class Menu extends Component {
     }
 
     componentDidMount() {
-
+        window.scroll(0, 0);
     }
 
 

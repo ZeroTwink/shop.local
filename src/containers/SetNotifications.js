@@ -198,7 +198,7 @@ class SetNotifications extends Component {
                         </UI.Cell>
                         <UI.Cell onClick={this.systemNotification.bind(this)}
                                  multiline
-                                 description="Информация об акциях, скидках, а также рвзличных важных событиях, касающихся функционированию приложения."
+                                 description="Информация об акциях, скидках, а также различных важных событиях, касающихся функционирования приложения."
                                  asideContent={<UI.Switch
                                      onChange={() => (null)}
                                      disabled={!this.props.user['set_notifications']}

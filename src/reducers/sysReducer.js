@@ -5,7 +5,18 @@ let initState = {
         view: "mainView",
         panel: ""
     },
-    popout: null, refresh: ""
+    popout: null,
+    refresh: "",
+    scroll: {
+        main: 0,
+        filters: 0,
+        addProduct: 0,
+        notifications: 0,
+        menu: 0,
+        all: 0,
+        gdsUserId: 0,
+        favorites: 0
+    }
 };
 
 export default function sysReducer(state = initState, action) {
@@ -16,6 +27,9 @@ export default function sysReducer(state = initState, action) {
             return Object.assign({}, state, {popout: action.payload});
         case types.SYS_SET_REFRESH:
             return Object.assign({}, state, {refresh: action.payload});
+        case types.SYS_SET_SCROLL:
+            let scroll = Object.assign({}, state['scroll'], action.payload);
+            return Object.assign({}, state, {scroll: scroll});
         default:
             return state;
     }

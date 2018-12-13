@@ -28,6 +28,8 @@ class Main extends Component {
 
 
     componentDidMount() {
+        window.scroll(0, this.props.sys['scroll']['main']);
+
         if(this.props.sys.refresh) {
             this.props.history.push(decodeURIComponent(this.props.sys.refresh));
 
@@ -35,10 +37,11 @@ class Main extends Component {
         }
     }
 
-    componentWillMount() {
-
+    componentWillUnmount() {
+        this.props.setScroll({
+            main: window.pageYOffset
+        });
     }
-
 
     render() {
         return (
@@ -175,6 +178,9 @@ function mapDispatchToProps(dispatch) {
     return {
         setRefresh: function (name) {
             dispatch(sysActions.setRefresh(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
         }
     }
 }

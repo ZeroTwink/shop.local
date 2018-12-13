@@ -16,6 +16,8 @@ import InfiniteScroll from './InfiniteScroll';
 import * as vkActions from "../actions/vk";
 
 import getCurrencyCode from '../helpers/getCurrencyCode';
+import * as sysActions from "../actions/sys";
+import * as gdsUserIdActions from "../actions/gdsUserId";
 
 
 class Info extends Component {
@@ -28,43 +30,73 @@ class Info extends Component {
             seller: {},
             waitingContent: true // Ждем первый запрос контента, крутим спиннер
         };
-
-        this.page = 0;
     }
 
     componentDidMount() {
-        this.loadNextItems();
+        window.scroll(0, this.props.sys['scroll']['gdsUserId']);
 
         if(+this.props.vk.user.id === +this.props.match.params['pId']) {
             this.setState({
                 seller: this.props.vk.user
             });
-
-            return;
+        } else {
+            let params = {user_ids: this.props.match.params['pId'], fields: "photo_50,photo_100,city"};
+            vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+                this.setState({
+                    seller: res[0]
+                });
+            });
         }
 
-        let params = {user_ids: this.props.match.params['pId'], fields: "photo_50,photo_100,city"};
-        vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
-            this.setState({
-                seller: res[0]
+        if(this.props.gdsUserId.idUser !== this.props.match.params.pId) {
+            this.props.gdsUserIdSet({
+                items: [],
+                hasMore: true,
+                page: 0,
+                idUser: this.props.match.params.pId
             });
+
+            window.scroll(0, 0);
+
+            this.loadNextItems(0);
+        }
+
+        if(this.props.gdsUserId.items.length && this.props.gdsUserId.idUser === this.props.match.params.pId) {
+            this.setState({
+                waitingContent: false
+            });
+        }
+    }
+
+    componentWillUnmount() {
+        this.props.setScroll({
+            gdsUserId: window.pageYOffset
         });
     }
 
-    loadNextItems() {
+    loadNextItems(page) {
         axios.get("/api/gds_user_id.php", {
             params: {
                 id: this.props.match.params.pId,
-                page: this.page
+                page: page || page === 0? page : this.props.gdsUserId.page
             }
         }).then(res => {
-            this.setState({
-                gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false,
-                waitingContent: false
-            });
+            if(this.state.waitingContent) {
+                this.setState({
+                    waitingContent: false
+                });
+            }
 
-            this.page++;
+            let hasMore = true;
+            if(res.data.response.gds.length < 10) {
+                hasMore = false;
+            }
+
+            this.props.gdsUserIdSet({
+                items: [...this.props.gdsUserId.items, ...res.data.response.gds],
+                hasMore: hasMore,
+                page: this.props.gdsUserId.page + 1
+            });
         }).catch(error => {
             console.log(error);
         });
@@ -76,7 +108,7 @@ class Info extends Component {
 
 
         let items = [];
-        this.state.gds.map((e, i) => {
+        this.props.gdsUserId.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
                 image = e["images"].split(",")[0];
@@ -132,22 +164,24 @@ class Info extends Component {
                     Объявления
                 </UI.PanelHeader>
 
-                <UI.Group>
-                    <UI.Cell
-                        size="l"
-                        description="Продавец"
-                        before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
-                    >
-                        {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
-                    </UI.Cell>
-                </UI.Group>
+                {this.state.seller['first_name']? (
+                    <UI.Group>
+                        <UI.Cell
+                            size="l"
+                            description="Продавец"
+                            before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
+                        >
+                            {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
+                        </UI.Cell>
+                    </UI.Group>
+                ) : null}
 
                 <UI.Group>
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
                             loadMore={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}
+                            hasMore={this.props.gdsUserId.hasMore}
                             loader={<UI.Div>
                                 <UI.Spinner size={20} strokeWidth={2}/>
                             </UI.Div>}>
@@ -171,8 +205,21 @@ function mapStateToProps(state) {
     return {
         user: state.user,
         gds: state.gds,
-        vk: state.vk
+        vk: state.vk,
+        sys: state.sys,
+        gdsUserId: state.gdsUserId
     }
 }
 
-export default connect(mapStateToProps)(Info);
+function mapDispatchToProps(dispatch) {
+    return {
+        gdsUserIdSet: function (name) {
+            dispatch(gdsUserIdActions.gdsUserIdSet(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Info);

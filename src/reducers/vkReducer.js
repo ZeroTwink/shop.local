@@ -9,9 +9,15 @@ export default function vkReducer(state = {}, action) {
         case types.VK_USER_INFO_FETCHED:
             return Object.assign({}, state, {user: action.payload});
         case types.VK_GET_PHONE_NUMBER:
-            return Object.assign({}, state, {phoneNumber: action.payload});
+            return Object.assign({}, state, {
+                phoneNumber: action.payload['phone_number'],
+                signPhoneNumber: action.payload['sign']
+            });
         case types.VK_GET_EMAIL:
-            return Object.assign({}, state, {email: action.payload});
+            return Object.assign({}, state, {
+                email: action.payload['email'],
+                signEmail: action.payload['sign']
+            });
         default:
             return state;
     }

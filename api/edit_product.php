@@ -134,23 +134,58 @@ if(isset($subcategory['error'])) {
 }
 $replace[] = $subcategory;
 
-
 if(isset($_POST['email']) && !empty($_POST['email'])) {
-    $email = Checks::email($_POST['email']);
-    if(isset($email['error'])) {
-        $api->assign("error", $email['error']);
+    $str = API_ID . API_SECRET . $user->id_vk . "email" . $_POST['email'];
+    $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
+
+    if(!isset($_POST['sign_email']) || $sign != $_POST['sign_email']) {
+        $error = [
+            "type" => 3,
+            "message" => "Указанный E-mail не совпадает с указаным во Вконтакте"
+        ];
+        $api->assign("error", $error);
         exit;
     }
-    $replace[] = $email;
+
+    $replace[] = $_POST['email'];
 } else {
     $replace[] = "";
 }
 
-if(isset($_POST['phone_number'])) {
+//if(isset($_POST['email']) && !empty($_POST['email'])) {
+//    $email = Checks::email($_POST['email']);
+//    if(isset($email['error'])) {
+//        $api->assign("error", $email['error']);
+//        exit;
+//    }
+//    $replace[] = $email;
+//} else {
+//    $replace[] = "";
+//}
+
+if(isset($_POST['phone_number']) && !empty($_POST['phone_number'])) {
+    $str = API_ID . API_SECRET . $user->id_vk . "phone_number" . $_POST['phone_number'];
+    $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
+
+    if(!isset($_POST['sign_phone_number']) || $sign != $_POST['sign_phone_number']) {
+        $error = [
+            "type" => 3,
+            "message" => "Указанный номер телефона не совпадает с номером указаным во Вконтакте"
+        ];
+        $api->assign("error", $error);
+        exit;
+    }
+
     $replace[] = $_POST['phone_number'];
 } else {
     $replace[] = "";
 }
+
+//if(isset($_POST['phone_number'])) {
+//    $replace[] = $_POST['phone_number'];
+//} else {
+//    $replace[] = "";
+//}
 
 if(!isset($_POST['price']) || !is_numeric($_POST['price'])) {
     $error = [

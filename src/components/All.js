@@ -16,24 +16,31 @@ import Icon16Like from '@vkontakte/icons/dist/16/like';
 import InfiniteScroll from '../components/InfiniteScroll';
 
 import getCurrencyCode from '../helpers/getCurrencyCode';
+import * as gdsAllActions from "../actions/gdsAll";
+import * as sysActions from "../actions/sys";
 
 class All extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            gds: [],
-            hasMore: true,
             waitingContent: true, // Ждем первый запрос контента, крутим спиннер
             title: "НОВЫЕ ТОВАРЫ",
             headerTitle: "Новые"
         };
 
-        this.page = 0;
+        this.scrolling = 0;
+
+        this.idTimer = null;
+
+        this.handleScroll = this.handleScroll.bind(this);
     }
 
 
     componentDidMount() {
+        window.scroll(0, this.props.sys['scroll']['all']);
+        // window.addEventListener('scroll', this.handleScroll, false);
+
         if(!categories[this.props.match.params.pId] && this.props.match.params.pId !== 'new') {
             this.setState({
                 waitingContent: false
@@ -50,24 +57,86 @@ class All extends Component {
             headerTitle: headerTitle
         });
 
-        this.loadNextItems();
+        if(this.props.gdsAll.type !== this.props.match.params.pId) {
+            this.props.gdsAllSet({
+                items: [],
+                hasMore: true,
+                page: 0,
+                type: this.props.match.params.pId
+            });
+
+            window.scroll(0, 0);
+
+            this.loadNextItems(0);
+        }
+
+        if(this.props.gdsAll.items.length && this.props.gdsAll.type === this.props.match.params.pId) {
+            this.setState({
+                waitingContent: false
+            });
+        }
     }
 
-    loadNextItems() {
-        axios.get("/api/all.php", {
-            params: {
-                id: this.props.match.params.pId,
-                page: this.page
-            }
-        }).then(res => {
+    // componentDidUpdate(props, state) {
+    //     window.scroll(0, this.props.sys['scroll']['all']);
+    // }
+
+    componentWillUnmount() {
+        // clearTimeout(this.idTimer);
+        // window.removeEventListener('scroll', this.handleScroll, false);
+        //
+        // console.log("lolaaa");
+
+        // window.scrollTo(0, 0);
+
+        this.props.setScroll({
+            all: window.pageYOffset
+        });
+    }
+
+    handleScroll() {
+        // clearTimeout(this.idTimer);
+        // this.idTimer = setTimeout(() => {
+        //     this.props.setScroll({
+        //         all: window.pageYOffset
+        //     });
+        //     console.log(window.pageYOffset);
+        // }, 50);
+    }
+
+    clickProduct(id, e) {
+        this.props.history.push("/product/" + id);
+    }
+
+    loadNextItems(page) {
+        if(!this.props.gdsAll.hasMore && this.props.gdsAll.type === this.props.match.params.pId) {
             this.setState({
-                gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false,
                 waitingContent: false
             });
 
-            this.page++;
+            return;
+        }
 
+        axios.get("/api/all.php", {
+            params: {
+                id: this.props.match.params.pId,
+                page: page || page === 0? page : this.props.gdsAll.page
+            }
+        }).then(res => {
+            this.setState({
+                waitingContent: false
+            });
+
+            let hasMore = true;
+            if(res.data.response.gds.length < 10) {
+                hasMore = false;
+            }
+
+            this.props.gdsAllSet({
+                items: [...this.props.gdsAll.items, ...res.data.response.gds],
+                hasMore: hasMore,
+                page: this.props.gdsAll.page + 1
+            });
         }).catch(error => {
             console.log(error);
         });
@@ -77,7 +146,7 @@ class All extends Component {
         const osname = UI.platform();
 
         let items = [];
-        this.state.gds.map((e, i) => {
+        this.props.gdsAll.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
                 image = e["images"].split(",")[0];
@@ -116,7 +185,7 @@ class All extends Component {
                          }
                          size="l"
                          description={categories[e.category]['title']}
-                         onClick={() => (this.props.history.push("/product/" + e.id))}>
+                         onClick={this.clickProduct.bind(this, e.id)}>
                     {e.title}
                 </UI.Cell>
             );
@@ -141,7 +210,8 @@ class All extends Component {
                         <InfiniteScroll
                             dataLength={items.length}
                             loadMore={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}
+                            hasMore={this.props.gdsAll.hasMore}
+                            initialScrollY={200}
                             loader={<UI.Div>
                                 <UI.Spinner size={20} strokeWidth={2}/>
                             </UI.Div>}>
@@ -164,8 +234,21 @@ class All extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        vk: state.vk
+        vk: state.vk,
+        sys: state.sys,
+        gdsAll: state.gdsAll
     }
 }
 
-export default connect(mapStateToProps)(All);
+function mapDispatchToProps(dispatch) {
+    return {
+        gdsAllSet: function (name) {
+            dispatch(gdsAllActions.gdsAllSet(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(All);

@@ -60,7 +60,28 @@ class PageLoader extends Component {
 
                 if((data.platform === 'android' && ((+version[0] === 5 && +version[1] < 19) || +version[0] < 5))
                     || (data.platform === 'ios' && +version[0] < 5)) {
-                    this.displayError("Для работы сервиса необходимо обновить официальное приложение VK");
+
+                    let el = (
+                        <div>
+                            Для работы сервиса необходимо обновить официальное приложение VK
+                            <UI.Group>
+                                {data.platform === 'android'? (
+                                    <UI.Link href="https://play.google.com/store/apps/details?id=com.vkontakte.android">
+                                        <UI.Div>
+                                            Play Маркет
+                                        </UI.Div>
+                                    </UI.Link>
+                                ) : (
+                                    <UI.Link href="https://itunes.apple.com/ru/app/vk-app/id564177498?mt=8">
+                                        <UI.Div>
+                                            App Store
+                                        </UI.Div>
+                                    </UI.Link>
+                                )}
+                            </UI.Group>
+                        </div>
+                    );
+                    this.displayError(el);
 
                     return false;
                 }
@@ -108,7 +129,7 @@ class PageLoader extends Component {
         VKConnect.unsubscribe(clb);
         VKConnect.subscribe(clb);
 
-        VKConnect.send('VKWebAppGetAuthToken', {'app_id': '6689902'});
+        VKConnect.send('VKWebAppGetAuthToken', {'app_id': 6689902, 'scope': ''});
     }
 
     step2() {
@@ -210,7 +231,7 @@ class PageLoader extends Component {
                             </UI.PanelHeader>
                             <UI.Group>
                                 <UI.Div style={{textAlign: "center"}}>
-                                    Чтобы получить доступ к личнему кабинету вам необходимо подтверлить аккаунт
+                                    Чтобы получить доступ к личному кабинету вам необходимо подтверлить аккаунт
                                     <br /><br />
                                     Для этого нажмите на кнопку "Подтвердить аккаунт" и разрешите приложению
                                     получить информацию о вас

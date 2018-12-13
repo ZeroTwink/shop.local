@@ -10,7 +10,8 @@ $error = [
 if(!isset($_GET['id'])) {
     $error = [
         "type" => 2,
-        "message" => "Объявление удалено или еще не размещено"
+        "message" => "Объявление удалено или еще не размещено",
+        "importance" => 1
     ];
     $api->assign("error", $error);
     exit;
@@ -24,7 +25,8 @@ $data = $res->fetch();
 if(!$data) {
     $error = [
         "type" => 2,
-        "message" => "Объявление удалено или еще не размещено"
+        "message" => "Объявление удалено или еще не размещено",
+        "importance" => 1
     ];
     $api->assign("error", $error);
     exit;

@@ -7,9 +7,11 @@ import axios from '../utils/axios';
 // import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 // import Icon24Back from '@vkontakte/icons/dist/24/back';
 // import Icon24Cancel from '@vkontakte/icons/dist/24/cancel';
+import Icon24Filter from '@vkontakte/icons/dist/24/filter';
 
 import * as sysActions from '../actions/sys';
 import * as filtersActions from '../actions/filters';
+import * as gdsFiltersActions from '../actions/gdsFilters';
 
 import categories from '../utils/categories';
 
@@ -24,19 +26,42 @@ class Filters extends Component {
         super(props);
 
         this.state = {
-            activeTab: "filters",
-            gds: [],
-            hasMore: true
+            // activeTab: "filters",
+            // gds: [],
+            // hasMore: true
         };
-
-        this.page = 0;
 
         this.timerId = null;
     }
 
-
     componentDidMount() {
+        window.scroll(0, this.props.sys['scroll']['filters']);
 
+        // if(this.props.gdsFilters.items.length) {
+        //     this.props.history.push("/filters/result");
+        // }
+    }
+
+    componentWillUnmount() {
+        this.props.setScroll({
+            filters: window.pageYOffset
+        });
+    }
+
+    displayError(message) {
+        this.props.setPopout(
+            <UI.Alert
+                actions={[{
+                    title: 'OK',
+                    autoclose: true,
+                    style: 'destructive'
+                }]}
+                onClose={() => this.props.setPopout(null)}
+            >
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Ошибка</div></h2>
+                <div style={{textAlign: "center"}}>{message}</div>
+            </UI.Alert>
+        );
     }
 
     getSelectedCountry() {
@@ -47,6 +72,13 @@ class Filters extends Component {
 
         if(this.props.vk.user['country']) {
             country = this.props.vk.user['country'];
+
+            if(this.props.vk.user['country']['id'] > 4) {
+                country = {
+                    id: 1,
+                    title: "Россия"
+                };
+            }
         }
 
         if(this.props.filters.country) {
@@ -67,6 +99,10 @@ class Filters extends Component {
             city = this.props.filters.city
         }
 
+        if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4) {
+            city = null;
+        }
+
         if(city && city.id === 0) {
             city = null;
         }
@@ -75,23 +111,6 @@ class Filters extends Component {
     }
 
     onChangeSearch(search) {
-        clearTimeout(this.timerId);
-
-        if(this.state.activeTab === 'result') {
-            this.timerId = setTimeout(() => {
-                this.page = 0;
-
-                this.setState({
-                    gds: [],
-                    hasMore: true
-                });
-
-                this.loadNextItems();
-
-                clearTimeout(this.timerId);
-            }, 1000);
-        }
-
         if(search === "") {
             this.props.setValues({
                 search: ""
@@ -134,18 +153,22 @@ class Filters extends Component {
 
         this.props.setPopout(<UI.ScreenSpinner />);
 
-        this.setState({
-            activeTab: "result",
-            gds: [],
-            hasMore: true
+        this.props.gdsFiltersSet({
+            items: [],
+            hasMore: true,
+            page: 0
         });
 
-        this.page = 0;
+        this.loadNextItems(() => {
+            this.props.setPopout(null);
 
-        this.loadNextItems();
+            this.props.history.push("/filters/result");
+
+            window.scroll(0, 0);
+        }, 0);
     }
 
-    loadNextItems() {
+    loadNextItems(cb, page, e) {
         axios.get("/api/filters.php", {
             params: {
                 sorting: this.props.filters.sorting,
@@ -155,22 +178,32 @@ class Filters extends Component {
                 city_id: this.getSelectedCity()? this.getSelectedCity()['id'] : "",
                 search: this.props.filters.search,
                 state: this.props.filters.state,
-                page: this.page
+                page: page || page === 0? page : this.props.gdsFilters.page
             }
         }).then(res => {
-            this.props.setPopout(null);
+            if(res.data.error) {
+                this.displayError(res.data.error.message);
+
+                return;
+            }
+
+            if(cb) {
+                cb();
+            }
 
             let hasMore = true;
-            if(+this.props.filters.sorting === 3 || +this.props.filters.sorting === 4 || !res.data.response.gds.length) {
+            if(+this.props.filters.sorting === 3
+                || +this.props.filters.sorting === 4
+                || !res.data.response.gds.length
+                || res.data.response.gds.length < 10) {
                 hasMore = false;
             }
 
-            this.setState({
-                gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: hasMore
+            this.props.gdsFiltersSet({
+                items: [...this.props.gdsFilters.items, ...res.data.response.gds],
+                hasMore: hasMore,
+                page: this.props.gdsFilters.page + 1
             });
-
-            this.page++;
         }).catch(error => {
             console.log(error);
 
@@ -178,32 +211,21 @@ class Filters extends Component {
         });
     }
 
-    clickHeaderButton() {
-        if(this.state.activeTab === 'filters') {
-            this.props.history.goBack();
-
-            return;
-        }
-
-        this.setState({
-            activeTab: 'filters'
+    clickMainFilters() {
+        this.props.gdsFiltersSet({
+            items: [],
+            hasMore: true,
+            page: 0
         });
+
+        this.props.history.push("/filters");
     }
-
-    iconHeader(osname) {
-        // if(String(this.state.activeTab) === "result") {
-        //     return <Icon24Cancel/>;
-        // }
-        //
-        // return osname === UI.IOS ? <Icon28ChevronBack/> : <Icon24Back/>
-    };
-
 
     render() {
         // const osname = UI.platform();
 
         let items = [];
-        this.state.gds.map((e, i) => {
+        this.props.gdsFilters.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
                 image = e["images"].split(",")[0];
@@ -242,31 +264,20 @@ class Filters extends Component {
 
         return (
             <UI.Panel id={this.props.id}>
-                <UI.PanelHeader noShadow>
+                <UI.PanelHeader noShadow
+                                left={this.props.match.params.pId? <UI.HeaderButton
+                                    onClick={this.clickMainFilters.bind(this)}>{<Icon24Filter/>}
+                                    </UI.HeaderButton> : null}
+                >
                     Фильтры
                 </UI.PanelHeader>
 
-                <UI.Search value={this.props.filters.search} onChange={this.onChangeSearch.bind(this)}/>
+                {!this.props.match.params.pId? (
+                    <UI.Search value={this.props.filters.search} onChange={this.onChangeSearch.bind(this)}/>
+                ) : null}
 
                 <UI.Group>
-                    <UI.Tabs>
-                        <UI.TabsItem className="tabsl"
-                                     onClick={() => this.setState({ activeTab: 'filters' })}
-                                     selected={this.state.activeTab === 'filters'}
-                        >
-                            Фильтры
-                        </UI.TabsItem>
-                        <UI.TabsItem className="tabsl"
-                                     onClick={() => this.setState({ activeTab: 'result' })}
-                                     selected={this.state.activeTab === 'result'}
-                        >
-                            Результат
-                        </UI.TabsItem>
-                    </UI.Tabs>
-                </UI.Group>
-
-                <UI.Group>
-                    {this.state.activeTab === 'filters'? (
+                    {!this.props.match.params.pId? (
                         <UI.FormLayout>
                             <UI.Select value={this.props.filters.sorting}
                                        onChange={this.onChangeSorting.bind(this)}
@@ -329,7 +340,7 @@ class Filters extends Component {
                             <InfiniteScroll
                                 dataLength={items.length}
                                 loadMore={this.loadNextItems.bind(this)}
-                                hasMore={this.state.hasMore}
+                                hasMore={this.props.gdsFilters.hasMore}
                                 loader={<UI.Div>
                                     <UI.Spinner size={20} strokeWidth={2}/>
                                 </UI.Div>}>
@@ -349,7 +360,9 @@ function mapStateToProps(state) {
         user: state.user,
         gds: state.gds,
         vk: state.vk,
-        filters: state.filters
+        filters: state.filters,
+        sys: state.sys,
+        gdsFilters: state.gdsFilters
     }
 }
 
@@ -363,6 +376,12 @@ function mapDispatchToProps(dispatch) {
         },
         setPopout: function (name) {
             dispatch(sysActions.setPopout(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
+        },
+        gdsFiltersSet: function (name) {
+            dispatch(gdsFiltersActions.gdsFiltersSet(name))
         }
     }
 }

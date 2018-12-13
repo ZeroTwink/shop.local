@@ -6,24 +6,38 @@ $words = urldecode($_GET['search']);
 
 $search_array = preg_split('#\s+#u', $words);
 
+//print_r($search_array);
+
 if(count($search_array) > 4) {
     $search_array = array_slice($search_array, 0, 4);
 }
 
 $words_search = [];
+$words_search_like = [];
 $replace = [];
 $sorting = "`id` DESC";
 
 for ($i = 0; $i < count($search_array); $i++) {
     $word = $search_array[$i];
 
-    $word = preg_replace('#[^a-zа-я0-9]#ui', '', $word);
+    $word = preg_replace('#[^a-zа-я0-9\-]#ui', '', $word);
 
-    if(Text::strlen($word) < 3) {
+    if(Text::strlen($word) < 2) {
         continue;
     }
 
+    $words_search_like[] = $word;
     $words_search[] = $word;
+}
+
+if($words && !count($words_search_like)) {
+    $error = [
+        "type" => 2,
+        "message" => "В строке поиска, есть некорректные символы"
+    ];
+    $api->assign("error", $error);
+
+    exit;
 }
 
 $where = [];
@@ -35,8 +49,21 @@ if(count($words_search)) {
         $words_search[0] = $word;
     }
 
-    $where[] = "MATCH(title) AGAINST(? IN BOOLEAN MODE)";
-    $replace[] = implode(" ", $words_search);
+//    $where[] = "MATCH(title) AGAINST(? IN BOOLEAN MODE)";
+
+    $sql_string_words = '';
+    foreach($words_search AS $w) {
+        $sql_string_words .= $w . "* ";
+    }
+//    $replace[] = implode(" ", $words_search);
+//    $replace[] = $sql_string_words;
+}
+
+if(count($words_search_like)) {
+    foreach($words_search_like AS $w) {
+        $where[] = "`title` LIKE ?";
+        $replace[] = "%$w%";
+    }
 }
 
 if(isset($_GET['category']) && !empty($_GET['category'])) {
@@ -93,6 +120,8 @@ if(isset($_GET['sorting']) && !empty($_GET['sorting'])) {
 $page = $_GET['page'];
 $offset = $page * 10;
 
+//print_r(implode(" AND ", $where));
+
 if(isset($sorting_two)) {
     $res = Db::me()->prepare("
       SELECT * FROM (SELECT * FROM `gds` 
@@ -102,7 +131,7 @@ if(isset($sorting_two)) {
     $search = $res->fetchAll();
 } else {
     $res = Db::me()->prepare("SELECT * FROM `gds` 
-    WHERE ".implode("AND ", $where)." AND `archive` = 0 ORDER BY $sorting LIMIT $offset, 10");
+    WHERE ".implode(" AND ", $where)." AND `archive` = 0 ORDER BY $sorting LIMIT $offset, 10");
     $res->execute($replace);
     $search = $res->fetchAll();
 }

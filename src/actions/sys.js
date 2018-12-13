@@ -24,3 +24,10 @@ export function setRefresh(name) {
         payload: name,
     }
 }
+
+export function setScroll(name) {
+    return {
+        type: types.SYS_SET_SCROLL,
+        payload: name,
+    }
+}

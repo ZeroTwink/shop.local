@@ -35,14 +35,32 @@ export function initApp() {
                 case 'VKWebAppGetPhoneNumberResult':
                     dispatch({
                         type: types.VK_GET_PHONE_NUMBER,
-                        payload: data['phone_number']
+                        payload: data
+                    });
+                    break;
+                case 'VKWebAppGetPhoneNumberFailed':
+                    dispatch({
+                        type: types.VK_GET_PHONE_NUMBER,
+                        payload: {
+                            "phone_number": "",
+                            "sign": ""
+                        }
                     });
                     break;
 
                 case 'VKWebAppGetEmailResult':
                     dispatch({
                         type: types.VK_GET_EMAIL,
-                        payload: data['email']
+                        payload: data
+                    });
+                    break;
+                case 'VKWebAppGetEmailFailed':
+                    dispatch({
+                        type: types.VK_GET_EMAIL,
+                        payload: {
+                            "email": "",
+                            "sign": ""
+                        }
                     });
                     break;
 

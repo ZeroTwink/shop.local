@@ -28,11 +28,13 @@ import * as vkActions from '../../actions/vk';
 import * as userActions from '../../actions/user';
 import * as sysActions from '../../actions/sys';
 import * as gdsActions from '../../actions/gds';
+import * as gdsFavoritesActions from "../../actions/gdsFavorites";
 
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 
 import '@vkontakte/vkui/dist/vkui.css';
 import './info.scss';
+import * as gdsUserIdActions from "../../actions/gdsUserId";
 
 
 class Info extends Component {
@@ -60,6 +62,8 @@ class Info extends Component {
     }
 
     componentDidMount() {
+        window.scrollTo(0, 0);
+
         let element = this.props.user.favorites.filter(id => +id === +this.props.match.params.pId);
         if(element.length) {
             this.setState({
@@ -126,7 +130,7 @@ class Info extends Component {
             }
         }).then(res => {
             if(res.data.error) {
-                this.displayError(res.data.error.message);
+                this.displayError(res.data.error.message, '', res.data.error['importance']);
 
                 return;
             }
@@ -154,7 +158,7 @@ class Info extends Component {
         });
     }
 
-    displayError(message, title) {
+    displayError(message, title, importance) {
         this.props.setPopout(
             <UI.Alert
                 actions={[{
@@ -162,7 +166,13 @@ class Info extends Component {
                     autoclose: true,
                     style: 'destructive'
                 }]}
-                onClose={() => this.props.setPopout(null)}
+                onClose={() => {
+                    this.props.setPopout(null);
+
+                    if(importance) {
+                        this.props.history.replace("/main");
+                    }
+                }}
             >
                 <h2><div style={{color: "#ff473d", textAlign: "center"}}>{title? title : "Ошибка"}</div></h2>
                 <div style={{textAlign: "center"}}>{message}</div>
@@ -179,6 +189,7 @@ class Info extends Component {
     }
 
     substr(text) {
+        text = text.replace(/(\r\n|\n\r|\r|\n){2,}/g, "\n\n");
         if(this.state.displayAllText) {
             return text;
         }
@@ -189,7 +200,7 @@ class Info extends Component {
         if(text.length > 120) {
             t = text.slice(0, 120);
 
-            title = "...Читать дальше";
+            title = "Показать полностью…";
         }
 
         let title2 = "";
@@ -200,7 +211,7 @@ class Info extends Component {
         return (
             <div>
                 {t}
-                <UI.Link onClick={() => this.setState({displayAllText: true})}>{title}</UI.Link>
+                <UI.Link onClick={() => this.setState({displayAllText: true})}><br /> {title}</UI.Link>
                 {title2}
             </div>
         );
@@ -265,14 +276,23 @@ class Info extends Component {
             return false;
         });
 
-        if(type === "add") {
-            gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] + 1;
-        } else {
-            gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] - 1;
+        if(indexOnArr !== null) {
+            if(type === "add") {
+                gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] + 1;
+            } else {
+                gdsNew[indexOnArr]['favorites'] = +gdsNew[indexOnArr]['favorites'] - 1;
+            }
+
+            this.props.gdsUpdate({
+                "gds_new": gdsNew
+            });
         }
 
-        this.props.gdsUpdate({
-            "gds_new": gdsNew
+        // Обнуляем кэш избранного, чтобы подгрузить заново с сервера
+        this.props.gdsFavoritesSet({
+            items: [],
+            hasMore: true,
+            page: 0
         });
 
         axios.get("/api/favorites.php", {
@@ -291,7 +311,9 @@ class Info extends Component {
 
     toggleContext() {
         this.setState({
-            contextOpened: !this.state.contextOpened
+            contextOpened: !this.state.contextOpened,
+            tooltipPrice: false,
+            tooltipHelp: false
         });
     }
 
@@ -334,6 +356,7 @@ class Info extends Component {
 
 
             let gdsNew = [...this.props.gds['gds_new']];
+            let gdsOpen = [...this.props.gds['open']];
 
             let indexOnArr = null;
             gdsNew.filter((e, i) => {
@@ -353,9 +376,38 @@ class Info extends Component {
                 });
             }
 
+            let indexOnArrOpen = null;
+            gdsOpen.filter((e, i) => {
+                if(+e.id === +this.props.match.params.pId) {
+                    indexOnArrOpen = i;
+                    return true;
+                }
+
+                return false;
+            });
+
+            if(indexOnArrOpen !== null) {
+                gdsOpen.splice(indexOnArr, 1);
+
+                this.props.gdsUpdate({
+                    "open": gdsOpen
+                });
+            }
+
+            this.props.gdsUserIdSet({
+                items: [],
+                hasMore: true,
+                page: 0,
+                idUser: 0
+            });
+
             this.props.setPopout(null);
 
-            this.props.history.replace("/main");
+            if(this.props.lastPathname) {
+                this.props.history.replace(this.props.lastPathname);
+            } else {
+                this.props.history.replace("/main");
+            }
         }).catch(error => {
             this.props.setPopout(null);
             console.log(error);
@@ -472,7 +524,7 @@ class Info extends Component {
                                 before={<Icon24LogoLivejournal />}
                                 onClick={() => this.props.history.push('/edit_product/' + this.props.match.params['pId'])}
                             >
-                                Измненить объявление
+                                Изменить объявление
                             </UI.Cell>
                         </UI.List>
                     </UI.HeaderContext>
@@ -529,9 +581,17 @@ class Info extends Component {
                             <div className="img_gallery"
                                  style={{backgroundImage: 'url(/images/no_photo_info.png)', backgroundSize: "cover"}}>
                                 <div className="price_product_img_wrap">
-                                    <div className="price_product_img">
-                                        {product["price"] + " " + getCurrencyCode(product['country_id'])}
-                                    </div>
+                                    <UI.Tooltip
+                                        text="Цена на товар"
+                                        isShown={this.state.tooltipPrice}
+                                        onClose={() => this.setState({ tooltipPrice: false })}
+                                        offsetX={10}
+                                    >
+                                        <div className="price_product_img"
+                                             onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
+                                            {product["price"] + " " + getCurrencyCode(product['country_id'])}
+                                        </div>
+                                    </UI.Tooltip>
                                 </div>
                             </div>
                         )}
@@ -552,7 +612,7 @@ class Info extends Component {
                                 onClick={this.toggleFavorites.bind(this)}
                                 level={this.state.addedToFavorites? "2" : "buy"}
                                 size="xl" before={this.state.addedToFavorites? <Icon24Like fill={UI.colors.red_light}/> : <Icon24LikeOutline/>}>
-                                {this.state.addedToFavorites? "Убрать из избранного" : "В избранное"}
+                                {this.state.addedToFavorites? "В избранном" : "В избранное"}
                             </UI.Button>
                             <UI.Button onClick={this.share.bind(this)} size="m" stretched level="secondary">
                                 <Icon24Share/>
@@ -590,7 +650,7 @@ class Info extends Component {
                                     </UI.Cell>
                                     <UI.Cell asideContent={
                                         <UI.Tooltip
-                                            text="Состояние товара: Б/у оценивает продавец по 5 бальной системе.
+                                            text="Состояние товара: Б/у оценивает продавец по пятибалльной системе.
                                             У новых товаров всегда 5 баллов"
                                             isShown={this.state.tooltipHelp}
                                             onClose={() => this.setState({ tooltipHelp: false })}
@@ -641,13 +701,15 @@ class Info extends Component {
                                     </UI.Cell>
                                     <UI.Cell multiline>
                                         <UI.InfoRow title="Описание" />
-                                        {this.substr(product.description)}
+                                        <div style={{whiteSpace: "pre-line"}}>
+                                            {this.substr(product.description)}
+                                        </div>
                                     </UI.Cell>
                                 </UI.List>
                             </div>
                         ) : (
                             <div>
-                                <UI.Header level="2">Контаткты</UI.Header>
+                                <UI.Header level="2">Контакты</UI.Header>
                                 <UI.List>
                                     <UI.Cell before={<UI.Avatar src={this.state.seller['photo_50']} size={40} />}
                                              description="Продавец">
@@ -744,6 +806,12 @@ function mapDispatchToProps(dispatch) {
         },
         gdsUpdate: function (name) {
             dispatch(gdsActions.gdsUpdate(name))
+        },
+        gdsFavoritesSet: function (name) {
+            dispatch(gdsFavoritesActions.gdsFavoritesSet(name))
+        },
+        gdsUserIdSet: function (name) {
+            dispatch(gdsUserIdActions.gdsUserIdSet(name))
         }
     }
 }

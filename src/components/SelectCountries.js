@@ -71,7 +71,7 @@ class SelectCountries extends Component {
     }
 
     getSelectedCountryId() {
-        let id = 1;
+        let id = null;
 
         if(this.props.vk.user['country']) {
             id = this.props.vk.user['country']['id'];

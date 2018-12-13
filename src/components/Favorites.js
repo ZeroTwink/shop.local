@@ -12,6 +12,8 @@ import categories from '../utils/categories';
 import InfiniteScroll from '../components/InfiniteScroll';
 import getCurrencyCode from "../helpers/getCurrencyCode";
 import * as userActions from "../actions/user";
+import * as gdsFavoritesActions from "../actions/gdsFavorites";
+import * as sysActions from "../actions/sys";
 
 
 class Favorites extends Component {
@@ -19,28 +21,54 @@ class Favorites extends Component {
         super(props);
 
         this.state = {
-            gds: [],
-            hasMore: true,
             waitingContent: true // Ждем первый запрос контента, крутим спиннер
         };
-
-        this.page = 0;
     }
 
     componentDidMount() {
-        this.loadNextItems();
+        window.scroll(0, this.props.sys['scroll']['favorites']);
+
+
+        if(!this.props.gdsFavorites.items.length) {
+            window.scroll(0, 0);
+
+            this.loadNextItems();
+        }
+
+        if(this.props.gdsFavorites.items.length) {
+            this.setState({
+                waitingContent: false
+            });
+        }
+    }
+
+    componentWillUnmount() {
+        this.props.setScroll({
+            favorites: window.pageYOffset
+        });
     }
 
     loadNextItems() {
         axios.get("/api/get_favorites.php", {
             params: {
-                page: this.page
+                page: this.props.gdsFavorites.page
             }
         }).then(res => {
-            this.setState({
-                gds: [...this.state.gds, ...res.data.response.gds],
-                hasMore: res.data.response.gds.length? true : false,
-                waitingContent: false
+            if(this.state.waitingContent) {
+                this.setState({
+                    waitingContent: false
+                });
+            }
+
+            let hasMore = true;
+            if(res.data.response.gds.length < 10) {
+                hasMore = false;
+            }
+
+            this.props.gdsFavoritesSet({
+                items: [...this.props.gdsFavorites.items, ...res.data.response.gds],
+                hasMore: hasMore,
+                page: this.props.gdsFavorites.page + 1
             });
 
             if(res.data.response['remove_arr'].length) {
@@ -54,8 +82,6 @@ class Favorites extends Component {
                     favorites: arrNew
                 });
             }
-
-            this.page++;
         }).catch(error => {
             console.log(error);
         });
@@ -66,7 +92,7 @@ class Favorites extends Component {
         const osname = UI.platform();
 
         let items = [];
-        this.state.gds.map((e, i) => {
+        this.props.gdsFavorites.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
                 image = e["images"].split(",")[0];
@@ -127,7 +153,7 @@ class Favorites extends Component {
                         <InfiniteScroll
                             dataLength={items.length}
                             loadMore={this.loadNextItems.bind(this)}
-                            hasMore={this.state.hasMore}
+                            hasMore={this.props.gdsFavorites.hasMore}
                             loader={<UI.Div>
                                 <UI.Spinner size={20} strokeWidth={2}/>
                             </UI.Div>}>
@@ -150,7 +176,9 @@ class Favorites extends Component {
 function mapStateToProps(state) {
     return {
         user: state.user,
-        vk: state.vk
+        vk: state.vk,
+        sys: state.sys,
+        gdsFavorites: state.gdsFavorites
     }
 }
 
@@ -158,6 +186,12 @@ function mapDispatchToProps(dispatch) {
     return {
         userUpdate: function (name) {
             dispatch(userActions.userUpdate(name))
+        },
+        gdsFavoritesSet: function (name) {
+            dispatch(gdsFavoritesActions.gdsFavoritesSet(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
         }
     }
 }

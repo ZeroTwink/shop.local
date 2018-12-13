@@ -89,12 +89,12 @@ if(process.env.NODE_ENV === 'production') {
             "last_name": "Качалка",
             "sex": 2,
             "city": {
-                "id": 2256,
-                "title": "Горловка"
+                "id": 625,
+                "title": "Hamburg"
             },
             "country": {
-                "id": 2,
-                "title": "Украина"
+                "id": 65,
+                "title": "Германия"
             },
             "photo_100": "https://sun1-5.userapi.com/c834304/v834304001/101214/WVtscxWYlCI.jpg?ava=1",
             "photo_200": "https://sun1-11.userapi.com/c834304/v834304001/101213/g7TwDpG11dM.jpg?ava=1",
@@ -105,7 +105,7 @@ if(process.env.NODE_ENV === 'production') {
     res.VKWebAppGetPhoneNumber.data = {
         "type": "VKWebAppGetPhoneNumberResult",
         "data": {
-            "sign": "Y1C99xnbEaR8Wred_LSicu7yUQnRdcrvL2-Lco96nqc",
+            "sign": "OBV9VrMcpifI6SfqW-9rWmXVVypSi6ZDXzjoxZToLeA",
             "phone_number": "79111234567"
         }
     };
@@ -113,7 +113,7 @@ if(process.env.NODE_ENV === 'production') {
     res.VKWebAppGetEmail.data = {
         "type": "VKWebAppGetEmailResult",
         "data": {
-            "sign": "Y1C99xnbEaR8Wred_LSicu7yUQnRdcrvL2-Lco96nqc",
+            "sign": "CAyEfFssgSpsO7wMh6c-hKLOfbpbu9Ie44e_mE6g59E",
             "email": "test@gmail.com"
         }
     };
@@ -122,7 +122,7 @@ if(process.env.NODE_ENV === 'production') {
         "type": "VKWebAppGetClientVersionResult",
         "data": {
             "platform": "android",
-            "version": "5.24"
+            "version": "5.23"
         }
     };
 

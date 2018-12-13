@@ -49,7 +49,8 @@ class API
             $response = [];
             $response['error'] = [
                 "type" => isset($this->_assigned['error']['type']) ? $this->_assigned['error']['type'] : 1,
-                "message" => isset($this->_assigned['error']['message']) ? $this->_assigned['error']['message'] : 'Возникла ошибка'
+                "message" => isset($this->_assigned['error']['message']) ? $this->_assigned['error']['message'] : 'Возникла ошибка',
+                "importance" => isset($this->_assigned['error']['importance'])? $this->_assigned['error']['importance'] : 0
             ];
 
             echo Json::encode($response);

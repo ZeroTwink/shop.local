@@ -20,6 +20,7 @@ import getCurrencyCode from '../../helpers/getCurrencyCode';
 
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
+import containsMat from "../../helpers/containsMat";
 
 class EditProduct extends Component {
     constructor(props) {
@@ -28,6 +29,8 @@ class EditProduct extends Component {
         this.state = {};
 
         this.formData = null;
+
+        this.fileInput = null;
     }
 
     componentDidMount() {
@@ -231,7 +234,7 @@ class EditProduct extends Component {
         reader.readAsDataURL(file);
     }
 
-    submitForm() {
+    submitForm(checkMat = true) {
         this.props.setPopout(<UI.ScreenSpinner />);
 
         this.formData = new FormData();
@@ -246,6 +249,11 @@ class EditProduct extends Component {
             this.formData.append('price', this.props.addProduct.priceInputValue);
         } else {
             this.displayError("Нужно указать цену на товар");
+            return;
+        }
+
+        if(+this.props.addProduct.priceInputValue > 99000000) {
+            this.displayError("Максимальная цена на один товар может составлять 99000000");
             return;
         }
 
@@ -285,15 +293,43 @@ class EditProduct extends Component {
             return;
         }
 
-        if(this.props.addProduct.titleInputValue.length > 2) {
-            this.formData.append('title', this.props.addProduct.titleInputValue);
+        let titleVal = this.props.addProduct.titleInputValue.trim();
+        if(titleVal.length > 2) {
+            this.formData.append('title', titleVal);
         } else {
             this.displayError("Длина названия должна быть не менее 3 символов");
             return;
         }
 
-        if(this.props.addProduct.titleInputValue.length > 100) {
+        if(titleVal.length > 100) {
             this.displayError("Длина названия не должна превышать 100 символов");
+            return;
+        }
+
+        if(checkMat && containsMat(titleVal)) {
+            this.props.setPopout(
+                <UI.Alert
+                    actions={[{
+                        title: 'Исправить',
+                        autoclose: true,
+                        style: 'cancel'
+                    }, {
+                        title: 'Продолжить',
+                        autoclose: true,
+                        style: 'destructive',
+                        action: () => this.submitForm(false)
+                    }]}
+                    onClose={() => this.props.setPopout(null)}
+                >
+                    <h2><div style={{color: "#ff473d", textAlign: "center"}}>Предупреждение</div></h2>
+                    <div>
+                        В названии обнаружены нецензурные слова.
+                        Переименуйте, пожалуйста, либо объявление будет удалено модератором.
+                        Если таких слов нет, нажмите продолжить.
+                    </div>
+                </UI.Alert>
+            );
+
             return;
         }
 
@@ -325,11 +361,21 @@ class EditProduct extends Component {
         } else {
             this.formData.append('email', "");
         }
+        if(this.props.vk.signEmail) {
+            this.formData.append('sign_email', this.props.vk.signEmail);
+        } else {
+            this.formData.append('sign_email', "");
+        }
 
         if(this.getPhoneNumber()) {
             this.formData.append('phone_number', this.getPhoneNumber());
         } else {
             this.formData.append('phone_number', "");
+        }
+        if(this.props.vk.signPhoneNumber) {
+            this.formData.append('sign_phone_number', this.props.vk.signPhoneNumber);
+        } else {
+            this.formData.append('sign_phone_number', "");
         }
 
         this.formData.append('delete_images', this.props.addProduct['deleteImages']);
@@ -439,6 +485,10 @@ class EditProduct extends Component {
             this.props.setValues({
                 arrImagesLoad: arr
             });
+
+            if(this.fileInput) {
+                this.fileInput.value = '';
+            }
         }, (error) => {
             console.log(error);
         });
@@ -463,7 +513,7 @@ class EditProduct extends Component {
             "title": "Россия"
         };
 
-        if(this.props.vk.user['country']) {
+        if(this.props.vk.user['country']  && this.props.vk.user['country']['id'] <= 4) {
             country = this.props.vk.user['country'];
         }
 
@@ -479,6 +529,10 @@ class EditProduct extends Component {
 
         if(this.props.vk.user['city'] && this.props.addProduct.city !== null) {
             city = this.props.vk.user['city']['title'];
+        }
+
+        if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4) {
+            city = null;
         }
 
         if(this.props.addProduct.city) {
@@ -536,7 +590,9 @@ class EditProduct extends Component {
             return;
         }
 
-        vkActions.fetchPhoneNumber();
+        if(this.props.vk.phoneNumber === undefined || this.props.vk.phoneNumber === null) {
+            vkActions.fetchPhoneNumber();
+        }
     }
 
     clickEmail() {
@@ -544,7 +600,9 @@ class EditProduct extends Component {
             return;
         }
 
-        vkActions.fetchEmail();
+        if(this.props.vk.email === undefined || this.props.vk.email === null) {
+            vkActions.fetchEmail();
+        }
     }
 
     render() {
@@ -615,7 +673,7 @@ class EditProduct extends Component {
                             <UI.Radio name="type" value="1"
                                       onChange={() => null}
                                       checked={this.props.addProduct.stateProductInputValue}
-                                      description="Не разу не использовался">Новый</UI.Radio>
+                                      description="Ни разу не использовался">Новый</UI.Radio>
                         </UI.FormLayoutGroup>
 
                         {!this.props.addProduct.stateProductInputValue? (
@@ -639,6 +697,7 @@ class EditProduct extends Component {
                                  onChange={this.fileChange.bind(this)}
                                  top="Фотографии (jpeg, png) вес не более 4 Мб"
                                  multiple
+                                 getRef={(e) => this.fileInput = e}
                                  before={<Icon24Camera />}>
                             Добавить фото
                         </UI.File>

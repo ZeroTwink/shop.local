@@ -39,6 +39,9 @@ class App extends Component {
         this.state = {
             renderer: false
         };
+
+        this.lastTabbar = 'main';
+        this.lastLocation = null;
     }
 
     componentDidMount() {
@@ -59,56 +62,129 @@ class App extends Component {
         });
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.location === nextProps.location) {
+            return;
+        }
+
+        if (this.props.location.pathname === nextProps.location.pathname) {
+            return;
+        }
+
+        this.lastLocation = {
+            ...this.props.location
+        };
+    }
+
+    onTransition() {
+        // console.log(this.props.match.params.pageId, this.props.sys['scroll'][this.props.match.params.pageId]);
+        // if(this.props.sys['scroll'][this.props.match.params.pageId]) {
+        //     window.scrollTo({left: 0, top: this.props.sys['scroll'][this.props.match.params.pageId], behavior: "auto"});
+        // } else {
+        //     window.scrollTo(0, 0);
+        // }
+    }
+
     render() {
+        console.log(this.lastLocation);
         const pageId = this.props.match.params.pageId || 'main';
 
+        const epics = {main: true, filters: true, add_product: true, notifications: true, menu: true};
+
+        let activeStory = pageId;
+
+        if(this.props.sys.active.view === 'choose') {
+            activeStory = this.props.sys.active.view;
+        }
+
+        if(epics[pageId]) {
+            this.lastTabbar = pageId;
+        }
+
+        let subprops = {
+            lastPathname: this.lastLocation? this.lastLocation.pathname : null
+        };
+
         if(!this.state.renderer) {
-            return <div></div>
+            return null;
         }
 
         return (
             <div>
-                <UI.Epic activeStory={this.props['sys']['active']['view']} tabbar={
+                <UI.Epic activeStory={activeStory} tabbar={
                     <UI.Tabbar>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/main")}
-                            selected={pageId === 'main'}
+                            selected={this.lastTabbar === 'main'}
                         ><Icon24Home /></UI.TabbarItem>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/filters")}
-                            selected={pageId === 'filters'}
+                            selected={this.lastTabbar === 'filters'}
                         ><Icon24Filter /></UI.TabbarItem>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/add_product")}
-                            selected={pageId === 'add_product'}
+                            selected={this.lastTabbar === 'add_product'}
                         ><Icon28AddOutline /></UI.TabbarItem>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/notifications")}
-                            selected={pageId === 'notifications'}
+                            selected={this.lastTabbar === 'notifications'}
                             label={this.props.user['notifications']['new']? this.props.user['notifications']['new'] : ""}
                         ><Icon28Notification /></UI.TabbarItem>
                         <UI.TabbarItem
                             onClick={() => this.props.history.push("/menu")}
-                            selected={pageId === 'menu'}
+                            selected={this.lastTabbar === 'menu'}
                         ><Icon28Menu /></UI.TabbarItem>
                     </UI.Tabbar>
                 }>
-                    <UI.View popout={this.props.sys.popout} id="mainView" activePanel={pageId}>
-                        <Main id="main" {...this.props}/>
-                        <Info id="product" {...this.props}/>
-                        <AddProduct id="add_product" {...this.props}/>
-                        <EditProduct id="edit_product" {...this.props}/>
-                        <Menu id="menu" {...this.props}/>
-                        <GdsUserId id="gds_user_id" {...this.props}/>
-                        <Favorites id="favorites" {...this.props}/>
-                        <Filters id="filters" {...this.props}/>
-                        <About id="about" {...this.props}/>
-                        <All id="all" {...this.props}/>
-                        <Rules id="rules" {...this.props}/>
-                        <SetNotifications id="set_notifications" {...this.props}/>
-                        <Notifications id="notifications" {...this.props}/>
-                        <Archive id="archive" {...this.props}/>
+                    <UI.View popout={this.props.sys.popout} id="main" activePanel="main">
+                        <Main id="main" {...this.props} {...subprops}/>
                     </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="filters" activePanel="filters">
+                        <Filters id="filters" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="add_product" activePanel="add_product">
+                        <AddProduct id="add_product" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="notifications" activePanel="notifications">
+                        <Notifications id="notifications" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="menu" activePanel="menu">
+                        <Menu id="menu" {...this.props} {...subprops}/>
+                    </UI.View>
+
+
+                    <UI.View popout={this.props.sys.popout} id="product" activePanel="product">
+                        <Info id="product" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="all" activePanel="all">
+                        <All id="all" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="gds_user_id" activePanel="gds_user_id">
+                        <GdsUserId id="gds_user_id" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="edit_product" activePanel="edit_product">
+                        <EditProduct id="edit_product" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="favorites" activePanel="favorites">
+                        <Favorites id="favorites" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="about" activePanel="about">
+                        <About id="about" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="rules" activePanel="rules">
+                        <Rules id="rules" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="set_notifications" activePanel="set_notifications">
+                        <SetNotifications id="set_notifications" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="archive" activePanel="archive">
+                        <Archive id="archive" {...this.props} {...subprops}/>
+                    </UI.View>
+
+
+                    {/*<UI.View onTransition={this.onTransition.bind(this)}*/}
+                             {/*popout={this.props.sys.popout} id="mainView" activePanel={pageId}>*/}
+                    {/*</UI.View>*/}
 
                     <UI.View id="choose" activePanel={this.props['sys']['active']['panel']}>
                         <SelectCountries id="addProductCountry" {...this.props} />

@@ -3,6 +3,8 @@ import {connect} from 'react-redux';
 import axios from '../../utils/axios';
 import * as UI from '@vkontakte/vkui';
 
+import containsMat from '../../helpers/containsMat';
+
 import * as vkActions from '../../actions/vk';
 
 import * as sysActions from '../../actions/sys';
@@ -20,6 +22,7 @@ import getCurrencyCode from '../../helpers/getCurrencyCode';
 
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
+import * as gdsUserIdActions from "../../actions/gdsUserId";
 
 class AddProduct extends Component {
     constructor(props) {
@@ -30,10 +33,14 @@ class AddProduct extends Component {
         };
 
         this.formData = null;
+
+        this.fileInput = null;
     }
 
 
     componentDidMount() {
+        window.scroll(0, this.props.sys['scroll']['addProduct']);
+
         if(this.props.addProduct.arrImagesLoad.length && !this.props.addProduct.isEditProduct) {
             return;
         }
@@ -58,6 +65,10 @@ class AddProduct extends Component {
     componentWillUnmount() {
         this.props.setValues({
             isEditProduct: 0
+        });
+
+        this.props.setScroll({
+            addProduct: window.pageYOffset
         });
     }
 
@@ -178,7 +189,7 @@ class AddProduct extends Component {
         reader.readAsDataURL(file);
     }
 
-    submitForm() {
+    submitForm(checkMat = true) {
         this.props.setPopout(<UI.ScreenSpinner />);
 
         this.formData = new FormData();
@@ -196,6 +207,15 @@ class AddProduct extends Component {
             return;
         }
 
+        if(+this.props.addProduct.priceInputValue > 99000000) {
+            this.displayError("Максимальная цена на один товар может составлять 99000000");
+            return;
+        }
+
+        if(!this.props.addProduct.country && this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4) {
+            this.displayError("Выберите страну из списка доступных");
+            return;
+        }
         if(this.props.addProduct.country || this.props.vk.user['country']) {
             let id = null;
             let title = "";
@@ -232,15 +252,43 @@ class AddProduct extends Component {
             return;
         }
 
-        if(this.props.addProduct.titleInputValue.length > 2) {
-            this.formData.append('title', this.props.addProduct.titleInputValue);
+        let titleVal = this.props.addProduct.titleInputValue.trim();
+        if(titleVal.length > 2) {
+            this.formData.append('title', titleVal);
         } else {
             this.displayError("Длина названия должна быть не менее 3 символов");
             return;
         }
 
-        if(this.props.addProduct.titleInputValue.length > 100) {
+        if(titleVal.length > 100) {
             this.displayError("Длина названия не должна превышать 100 символов");
+            return;
+        }
+
+        if(checkMat && containsMat(titleVal)) {
+            this.props.setPopout(
+                <UI.Alert
+                    actions={[{
+                        title: 'Исправить',
+                        autoclose: true,
+                        style: 'cancel'
+                    }, {
+                        title: 'Продолжить',
+                        autoclose: true,
+                        style: 'destructive',
+                        action: () => this.submitForm(false)
+                    }]}
+                    onClose={() => this.props.setPopout(null)}
+                >
+                    <h2><div style={{color: "#ff473d", textAlign: "center"}}>Предупреждение</div></h2>
+                    <div>
+                        В названии обнаружены нецензурные слова.
+                        Переименуйте, пожалуйста, либо объявление будет удалено модератором.
+                        Если таких слов нет, нажмите продолжить.
+                    </div>
+                </UI.Alert>
+            );
+
             return;
         }
 
@@ -272,11 +320,21 @@ class AddProduct extends Component {
         } else {
             this.formData.append('email', "");
         }
+        if(this.props.vk.signEmail) {
+            this.formData.append('sign_email', this.props.vk.signEmail);
+        } else {
+            this.formData.append('sign_email', "");
+        }
 
         if(this.getPhoneNumber()) {
             this.formData.append('phone_number', this.getPhoneNumber());
         } else {
             this.formData.append('phone_number', "");
+        }
+        if(this.props.vk.signPhoneNumber) {
+            this.formData.append('sign_phone_number', this.props.vk.signPhoneNumber);
+        } else {
+            this.formData.append('sign_phone_number', "");
         }
 
         axios({
@@ -325,6 +383,13 @@ class AddProduct extends Component {
                 arrImagesLoad: []
             });
 
+            this.props.gdsUserIdSet({
+                items: [],
+                hasMore: true,
+                page: 0,
+                idUser: 0
+            });
+
             this.props.history.replace("/product/" + response.data.response["product"]['id']);
         })
         .catch((response) => {
@@ -334,6 +399,7 @@ class AddProduct extends Component {
     }
 
     fileChange(e) {
+        console.log(e.target.files);
         if(!e.target.files[0]) {
             return;
         }
@@ -367,6 +433,10 @@ class AddProduct extends Component {
             this.props.setValues({
                 arrImagesLoad: arr
             });
+
+            if(this.fileInput) {
+                this.fileInput.value = '';
+            }
         }, (error) => {
             console.log(error);
         });
@@ -384,12 +454,9 @@ class AddProduct extends Component {
     }
 
     getSelectedCountry() {
-        let country = {
-            "id": 1,
-            "title": "Россия"
-        };
+        let country = {};
 
-        if(this.props.vk.user['country']) {
+        if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] <= 4) {
             country = this.props.vk.user['country'];
         }
 
@@ -405,6 +472,10 @@ class AddProduct extends Component {
 
         if(this.props.vk.user['city'] && this.props.addProduct.city !== null) {
             city = this.props.vk.user['city']['title'];
+        }
+
+        if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4) {
+            city = null;
         }
 
         if(this.props.addProduct.city) {
@@ -462,7 +533,9 @@ class AddProduct extends Component {
             return;
         }
 
-        vkActions.fetchPhoneNumber();
+        if(this.props.vk.phoneNumber === undefined || this.props.vk.phoneNumber === null) {
+            vkActions.fetchPhoneNumber();
+        }
     }
 
     clickEmail() {
@@ -470,7 +543,9 @@ class AddProduct extends Component {
             return;
         }
 
-        vkActions.fetchEmail();
+        if(this.props.vk.email === undefined || this.props.vk.email === null) {
+            vkActions.fetchEmail();
+        }
     }
 
     render() {
@@ -489,7 +564,7 @@ class AddProduct extends Component {
                             placeholder="Не выбрана"
                             onClick={() => this.props.setActive({view: "choose", panel: "addProductCountry"})}
                         >
-                            {this.getSelectedCountry()['title']}
+                            {this.getSelectedCountry()['title']? this.getSelectedCountry()['title'] : null}
                         </UI.SelectMimicry>
 
                         <UI.SelectMimicry
@@ -503,10 +578,14 @@ class AddProduct extends Component {
                 </UI.Group>
 
                 <UI.Group title="Информация"
-                          description={<span>Поля отмеченные <span style={{color: "#4CAF50"}}>*</span> обязательны для заполнения</span>}>
+                          description={<span>Поля, отмеченные <span style={{color: "#4CAF50"}}>*</span>, обязательны для заполнения</span>}>
                     <UI.FormLayout>
 
-                        <UI.Input type="number" top={<span>Цена (целое число) {getCurrencyCode(this.getSelectedCountry()["id"])} <span style={{color: "#4CAF50"}}>*</span></span>}
+                        <UI.Input type="number"
+                                  top={<span>
+                                      Цена (целое число) {getCurrencyCode(this.getSelectedCountry()["id"]? this.getSelectedCountry()["id"] : 1)}
+                                      <span style={{color: "#4CAF50"}}> *</span>
+                                  </span>}
                                   value={this.props.addProduct.priceInputValue}
                                   onChange={this.onChangePrice.bind(this)} />
 
@@ -536,11 +615,11 @@ class AddProduct extends Component {
                                       description="Товар был в эксплуатации">Б/у</UI.Radio>
                             <UI.Radio name="type" value="1"
                                       defaultChecked={this.props.addProduct.stateProductInputValue}
-                                      description="Не разу не использовался">Новый</UI.Radio>
+                                      description="Ни разу не использовался">Новый</UI.Radio>
                         </UI.FormLayoutGroup>
 
                         {!this.props.addProduct.stateProductInputValue? (
-                            <UI.FormLayoutGroup top="Оцека состояние">
+                            <UI.FormLayoutGroup top="Оценка состояния">
                                 <UI.Slider
                                     step={1}
                                     min={1}
@@ -560,6 +639,7 @@ class AddProduct extends Component {
                                  onChange={this.fileChange.bind(this)}
                                  top="Фотографии (jpeg, png) вес не более 4 Мб"
                                  multiple
+                                 getRef={(e) => this.fileInput = e}
                                  before={<Icon24Camera />}>
                             Добавить фото
                         </UI.File>
@@ -623,7 +703,8 @@ function mapStateToProps(state) {
     return {
         gds: state.gds,
         vk: state.vk,
-        addProduct: state.addProduct
+        addProduct: state.addProduct,
+        sys: state.sys
     }
 }
 
@@ -640,6 +721,12 @@ function mapDispatchToProps(dispatch) {
         },
         gdsUpdate: function (name) {
             dispatch(gdsActions.gdsUpdate(name))
+        },
+        setScroll: function (name) {
+            dispatch(sysActions.setScroll(name))
+        },
+        gdsUserIdSet: function (name) {
+            dispatch(gdsUserIdActions.gdsUserIdSet(name))
         }
     }
 }

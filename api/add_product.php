@@ -32,7 +32,7 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
             $error = [
                 "type" => 2,
                 "message" => "Фаил ".$_FILES['img']['name'][$key]." не подходит форматом,
-                дуступные форматы jpeg, jpg, png"
+                доступные форматы jpeg, jpg, png"
             ];
             $api->assign("error", $error);
 
@@ -78,38 +78,74 @@ $replace[] = $subcategory;
 
 
 if(isset($_POST['email']) && !empty($_POST['email'])) {
-    $email = Checks::email($_POST['email']);
-    if(isset($email['error'])) {
-        $api->assign("error", $email['error']);
-        exit;
-    }
-    $replace[] = $email;
-} else {
-    $replace[] = "";
-}
+    $str = API_ID . API_SECRET . $user->id_vk . "email" . $_POST['email'];
+    $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
 
-if(isset($_POST['phone_number'])) {
-    $tel = $_POST['phone_number'];
-    $first = substr($tel, 0, 1);
-
-    if($first == "+") {
-        $tel = Text::substr($tel, 12, 1, "");
-    }
-
-    if(!preg_match("/^[0-9]{10,12}+$/", $tel)) {
+    if(!isset($_POST['sign_email']) || $sign != $_POST['sign_email']) {
         $error = [
             "type" => 3,
-            "message" => "Некорректно указан номер телефона"
+            "message" => "Указанный E-mail не совпадает с указаным во Вконтакте"
         ];
         $api->assign("error", $error);
         exit;
     }
-    $replace[] = $tel;
+
+    $replace[] = $_POST['email'];
 } else {
     $replace[] = "";
 }
 
-if(!isset($_POST['price']) || !is_numeric($_POST['price'])) {
+//if(isset($_POST['email']) && !empty($_POST['email'])) {
+//    $email = Checks::email($_POST['email']);
+//    if(isset($email['error'])) {
+//        $api->assign("error", $email['error']);
+//        exit;
+//    }
+//    $replace[] = $email;
+//} else {
+//    $replace[] = "";
+//}
+
+if(isset($_POST['phone_number']) && !empty($_POST['phone_number'])) {
+    $str = API_ID . API_SECRET . $user->id_vk . "phone_number" . $_POST['phone_number'];
+    $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
+
+    if(!isset($_POST['sign_phone_number']) || $sign != $_POST['sign_phone_number']) {
+        $error = [
+            "type" => 3,
+            "message" => "Указанный номер телефона не совпадает с номером указаным во Вконтакте"
+        ];
+        $api->assign("error", $error);
+        exit;
+    }
+
+    $replace[] = $_POST['phone_number'];
+} else {
+    $replace[] = "";
+}
+
+//if(isset($_POST['phone_number'])) {
+//    $tel = $_POST['phone_number'];
+//    $first = substr($tel, 0, 1);
+//
+//    if($first == "+") {
+//        $tel = Text::substr($tel, 12, 1, "");
+//    }
+//
+//    if(!preg_match("/^[0-9]{10,12}+$/", $tel)) {
+//        $error = [
+//            "type" => 3,
+//            "message" => "Некорректно указан номер телефона"
+//        ];
+//        $api->assign("error", $error);
+//        exit;
+//    }
+//    $replace[] = $tel;
+//} else {
+//    $replace[] = "";
+//}
+
+if(!isset($_POST['price']) || !is_numeric($_POST['price']) || $_POST['price'] > 99000000) {
     $error = [
         "type" => 3,
         "message" => "Некорректно указана цена"
@@ -140,10 +176,10 @@ if(!isset($_POST['state_balls']) || $_POST['state_balls'] > 5 || $_POST['state_b
 $replace[] = (int)$_POST['state_balls'];
 
 if(isset($_POST['description'])) {
-    if(Text::strlen($_POST['description']) > 5000) {
+    if(Text::strlen($_POST['description']) > 2000) {
         $error = [
             "type" => 3,
-            "message" => "Описание превысило лимит в 5000 символов"
+            "message" => "Описание превысило лимит в 2000 символов"
         ];
         $api->assign("error", $error);
         exit;
