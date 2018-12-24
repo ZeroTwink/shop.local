@@ -66,12 +66,52 @@ class Info extends Component {
                 waitingContent: false
             });
         }
+
+        if(!this.props.gdsUserId.items.length && this.props.gdsUserId.idUser === this.props.match.params.pId) {
+            this.setState({
+                waitingContent: false
+            });
+        }
     }
 
     componentWillUnmount() {
+        this.props.setPopout(null);
+
         this.props.setScroll({
             gdsUserId: window.pageYOffset
         });
+    }
+
+    displayActionSheet() {
+        const osname = UI.platform();
+
+        if(+this.props.vk.user.id === +this.props.match.params['pId']) {
+            return;
+        }
+
+        this.props.setPopout(
+            <UI.ActionSheet
+                onClose={() => this.props.setPopout(null)}
+                title="Действие"
+                text="Выберите подходящий пункт"
+            >
+                <UI.Link href={"https://vk.com/id" + this.props.match.params['pId']}>
+                    <UI.ActionSheetItem
+                        autoclose
+                        onClick={() => {}}>
+                        Открыть профиль
+                    </UI.ActionSheetItem>
+                </UI.Link>
+                <UI.Link href={"https://vk.me/id" + this.props.match.params['pId']}>
+                    <UI.ActionSheetItem
+                        autoclose
+                        onClick={() => {}}>
+                        Написать сообщение
+                    </UI.ActionSheetItem>
+                </UI.Link>
+                {osname === UI.IOS && <UI.ActionSheetItem autoclose theme="cancel">Отменить</UI.ActionSheetItem>}
+            </UI.ActionSheet>
+        );
     }
 
     loadNextItems(page) {
@@ -102,6 +142,20 @@ class Info extends Component {
         });
     }
 
+    getPrice(price, country_id) {
+        if(+price === 0) {
+            return (
+                <span style={{fontSize: 12}}>Бесплатно</span>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                {price + " "}
+                <span style={{fontSize: 11}}>{getCurrencyCode(country_id)}</span>
+            </React.Fragment>
+        );
+    }
 
     render() {
         const osname = UI.platform();
@@ -114,7 +168,7 @@ class Info extends Component {
                 image = e["images"].split(",")[0];
 
                 image = window.location.protocol + "//" + window.location.hostname +
-                    "/sys/files/gds/" + image;
+                    "/sys/files/gds/" + image + "?v=" + e['time_update'];
             } else {
                 image = "/images/no_photo_info.png";
             }
@@ -131,8 +185,7 @@ class Info extends Component {
                          asideContent={
                              <div className="price" style={{color: UI.colors.blue}}>
                                  <div style={{color: "#fff"}}>
-                                     {e.price + " "}
-                                     <span style={{fontSize: 11}}>{getCurrencyCode(e.country_id)}</span>
+                                     {this.getPrice(e.price, e.country_id)}
                                  </div>
                              </div>
                          }
@@ -167,6 +220,8 @@ class Info extends Component {
                 {this.state.seller['first_name']? (
                     <UI.Group>
                         <UI.Cell
+                            onClick={+this.props.vk.user.id !== +this.props.match.params['pId']
+                                ? this.displayActionSheet.bind(this) : null}
                             size="l"
                             description="Продавец"
                             before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
@@ -218,6 +273,9 @@ function mapDispatchToProps(dispatch) {
         },
         setScroll: function (name) {
             dispatch(sysActions.setScroll(name))
+        },
+        setPopout: function (name) {
+            dispatch(sysActions.setPopout(name))
         }
     }
 }

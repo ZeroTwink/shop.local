@@ -1,32 +1,65 @@
 const transport = {
     title: "Транспорт",
+    dState: {
+        addEdit: true,
+        filters: true
+    },
     sub: [
         {
-            title: "Легковые автомобили"
+            title: "Легковые автомобили",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Грузовые автомобили"
+            title: "Грузовые автомобили",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Автобусы"
+            title: "Автобусы",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Мото"
+            title: "Мото",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Сельхозтехника"
+            title: "Сельхозтехника",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Водный транспорт"
+            title: "Водный транспорт",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Воздушный транспорт"
+            title: "Воздушный транспорт",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Прицепы / дома на колесах"
-        },
-        {
-            title: "Запчасти для транспорта"
+            title: "Прицепы / дома на колесах",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         }
     ]
 };

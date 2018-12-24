@@ -15,7 +15,7 @@ if(count($search_array) > 4) {
 $words_search = [];
 $words_search_like = [];
 $replace = [];
-$sorting = "`id` DESC";
+$sorting = "`time` DESC";
 
 for ($i = 0; $i < count($search_array); $i++) {
     $word = $search_array[$i];
@@ -66,14 +66,14 @@ if(count($words_search_like)) {
     }
 }
 
-if(isset($_GET['category']) && !empty($_GET['category'])) {
+if(isset($_GET['category'])) {
     $category = (int)$_GET['category'];
 
     $where[] = "`category` = ?";
     $replace[] = $category;
 }
 
-if(isset($_GET['subcategory']) && !empty($_GET['subcategory'])) {
+if(isset($_GET['subcategory'])) {
     $subcategory = (int)$_GET['subcategory'];
 
     $where[] = "`subcategory` = ?";
@@ -94,7 +94,7 @@ if(isset($_GET['city_id']) && !empty($_GET['city_id']) && $_GET['city_id']) {
     $replace[] = $city_id;
 }
 
-if(isset($_GET['state']) && !empty($_GET['state'])) {
+if(isset($_GET['state']) && ($_GET['state'] == 0 || $_GET['state'] == 1)) {
     $state = (int)$_GET['state'];
 
     $where[] = "`state` = ?";

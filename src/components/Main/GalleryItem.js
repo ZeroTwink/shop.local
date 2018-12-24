@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 
 export default class GalleryItem extends Component {
     render() {
-        let {ad, history, currencyCode} = this.props;
+        let {ad, history, price} = this.props;
 
         let image = "";
         if(ad['images'] !== "") {
@@ -31,7 +31,7 @@ export default class GalleryItem extends Component {
                     </div>
                 </div>
                 <div className="price">
-                    {ad.price + " " + currencyCode}
+                    {price}
                 </div>
             </div>
         );

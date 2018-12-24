@@ -162,18 +162,19 @@ class SelectCityFilters extends Component {
                         >
                             Любой город
                         </UI.Cell>
-                        {this.cities? this.cities.map((e, i) => (
+                        {this.cities.length? this.cities.map((e, i) => (
                             <UI.Cell key={e.id}
                                      onClick={this.onChangeCity.bind(this, e)}
                                      asideContent={e.id === this.getSelectedCityId() ? <Icon24Done fill="#4caf50" /> : null}
                             >
                                 {e.title}
+                                {e.region? (
+                                    <div style={{fontSize: 13}}>
+                                        {e.region}
+                                    </div>
+                                ) : null}
                             </UI.Cell>
-                        )) : (
-                            <UI.Cell>
-                                Нет результятов
-                            </UI.Cell>
-                        )}
+                        )) : null}
                     </UI.List>
                 </UI.Group>
             </UI.Panel>

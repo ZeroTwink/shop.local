@@ -142,6 +142,21 @@ class All extends Component {
         });
     }
 
+    getPrice(price, country_id) {
+        if(+price === 0) {
+            return (
+                <span style={{fontSize: 12}}>Бесплатно</span>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                {price + " "}
+                <span style={{fontSize: 11}}>{getCurrencyCode(country_id)}</span>
+            </React.Fragment>
+        );
+    }
+
     render() {
         const osname = UI.platform();
 
@@ -169,8 +184,7 @@ class All extends Component {
                          asideContent={
                              <div className="price" style={{color: UI.colors.blue}}>
                                  <div style={{color: "#fff"}}>
-                                     {e.price + " "}
-                                     <span style={{fontSize: 11}}>{getCurrencyCode(e.country_id)}</span>
+                                     {this.getPrice(e.price, e.country_id)}
                                  </div>
                              </div>
                          }

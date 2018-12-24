@@ -70,7 +70,7 @@ class Filters extends Component {
             title: "Россия"
         };
 
-        if(this.props.vk.user['country']) {
+        if(this.props.vk.user['country'] && !this.props.filters.country) {
             country = this.props.vk.user['country'];
 
             if(this.props.vk.user['country']['id'] > 4) {
@@ -78,6 +78,10 @@ class Filters extends Component {
                     id: 1,
                     title: "Россия"
                 };
+
+                this.props.setValues({
+                    country: country
+                });
             }
         }
 
@@ -95,12 +99,12 @@ class Filters extends Component {
             city = this.props.vk.user['city'];
         }
 
-        if(this.props.filters.city) {
-            city = this.props.filters.city
-        }
-
         if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4) {
             city = null;
+        }
+
+        if(this.props.filters.city) {
+            city = this.props.filters.city
         }
 
         if(city && city.id === 0) {
@@ -126,7 +130,8 @@ class Filters extends Component {
 
     onChangeCategory(e) {
         this.props.setValues({
-            category: e.target.value
+            category: e.target.value,
+            subcategory: "" // любоая, это пустая строка
         });
     }
 
@@ -169,17 +174,29 @@ class Filters extends Component {
     }
 
     loadNextItems(cb, page, e) {
+        let params = {};
+        params['sorting'] = this.props.filters.sorting;
+
+
+        params['country_id'] = this.getSelectedCountry()['id'];
+        params['city_id'] = this.getSelectedCity()? this.getSelectedCity()['id'] : "";
+        params['search'] = this.props.filters.search;
+        params['page'] = page || page === 0? page : this.props.gdsFilters.page;
+
+        if(String(this.props.filters.category) !== "") {
+            params['category'] = this.props.filters.category;
+        }
+
+        if(String(this.props.filters.subcategory) !== "") {
+            params['subcategory'] = this.props.filters.subcategory;
+        }
+
+        if(this.props.filters.state === "0" || this.props.filters.state === "1") {
+            params['state'] = this.props.filters.state;
+        }
+
         axios.get("/api/filters.php", {
-            params: {
-                sorting: this.props.filters.sorting,
-                category: this.props.filters.category,
-                subcategory: this.props.filters.subcategory,
-                country_id: this.getSelectedCountry()['id'],
-                city_id: this.getSelectedCity()? this.getSelectedCity()['id'] : "",
-                search: this.props.filters.search,
-                state: this.props.filters.state,
-                page: page || page === 0? page : this.props.gdsFilters.page
-            }
+            params: params
         }).then(res => {
             if(res.data.error) {
                 this.displayError(res.data.error.message);
@@ -221,6 +238,53 @@ class Filters extends Component {
         this.props.history.push("/filters");
     }
 
+    stateDisplayCheck(subShow = true) {
+        let show = true;
+
+        if(categories[this.props.filters.category]) {
+            if(!categories[this.props.filters.category]['dState']['addEdit']) {
+                show = false;
+            }
+
+            if(categories[this.props.filters.category]['sub'][this.props.filters.subcategory]) {
+                let sub = categories[this.props.filters.category]['sub'][this.props.filters.subcategory];
+
+                if(!sub['dState']['addEdit']) {
+                    show = false;
+                }
+            }
+        }
+
+        if(!subShow) {
+            show = false;
+        }
+
+        return show;
+    }
+
+    getPrice(price, country_id) {
+        if(+price === 0) {
+            return (
+                <span style={{fontSize: 12}}>Бесплатно</span>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                {price + " "}
+                <span style={{fontSize: 11}}>{getCurrencyCode(country_id)}</span>
+            </React.Fragment>
+        );
+    }
+
+    searchKeyUp(e) {
+        console.log(e.key);
+
+        if(e.key === 'Enter') {
+            this.submitForm(e);
+        }
+    }
+
     render() {
         // const osname = UI.platform();
 
@@ -248,7 +312,7 @@ class Filters extends Component {
                          bottomContent={
                              <div className="price" style={{color: UI.colors.blue}}>
                                  <div style={{color: "#fff"}}>
-                                     {e.price + " " + getCurrencyCode(this.getSelectedCountry()['id'])}
+                                     {this.getPrice(e.price, this.getSelectedCountry()['id'])}
                                  </div>
                              </div>
                          }
@@ -273,7 +337,7 @@ class Filters extends Component {
                 </UI.PanelHeader>
 
                 {!this.props.match.params.pId? (
-                    <UI.Search value={this.props.filters.search} onChange={this.onChangeSearch.bind(this)}/>
+                    <UI.Search value={this.props.filters.search} onKeyUp={this.searchKeyUp.bind(this)} onChange={this.onChangeSearch.bind(this)}/>
                 ) : null}
 
                 <UI.Group>
@@ -307,12 +371,14 @@ class Filters extends Component {
                                 ) : null}
                             </UI.Select>
 
-                            <UI.Select value={this.props.filters.state}
-                                       onChange={this.onChangeState.bind(this)}
-                                       top="Состояние товара" placeholder="Показать все">
-                                <option key="0" value="0">Б/у</option>
-                                <option key="1" value="1">Новый</option>
-                            </UI.Select>
+                            {this.stateDisplayCheck()? (
+                                <UI.Select value={this.props.filters.state}
+                                           onChange={this.onChangeState.bind(this)}
+                                           top="Состояние товара" placeholder="Показать все">
+                                    <option key="0" value="0">Б/у</option>
+                                    <option key="1" value="1">Новый</option>
+                                </UI.Select>
+                            ) : null}
 
                             <UI.SelectMimicry
                                 top="Выберите страну"

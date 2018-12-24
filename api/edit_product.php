@@ -134,14 +134,14 @@ if(isset($subcategory['error'])) {
 }
 $replace[] = $subcategory;
 
-if(isset($_POST['email']) && !empty($_POST['email'])) {
+if(isset($_POST['email']) && !empty($_POST['email']) && $data['email'] != $_POST['email']) {
     $str = API_ID . API_SECRET . $user->id_vk . "email" . $_POST['email'];
     $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
 
     if(!isset($_POST['sign_email']) || $sign != $_POST['sign_email']) {
         $error = [
             "type" => 3,
-            "message" => "Указанный E-mail не совпадает с указаным во Вконтакте"
+            "message" => "Введенный E-mail не соответствует E-mail, указанному на странице ВКонтакте"
         ];
         $api->assign("error", $error);
         exit;
@@ -149,7 +149,11 @@ if(isset($_POST['email']) && !empty($_POST['email'])) {
 
     $replace[] = $_POST['email'];
 } else {
-    $replace[] = "";
+    if(!$_POST['email']) {
+        $replace[] = "";
+    } else {
+        $replace[] = $data['email'];
+    }
 }
 
 //if(isset($_POST['email']) && !empty($_POST['email'])) {
@@ -163,14 +167,14 @@ if(isset($_POST['email']) && !empty($_POST['email'])) {
 //    $replace[] = "";
 //}
 
-if(isset($_POST['phone_number']) && !empty($_POST['phone_number'])) {
+if(isset($_POST['phone_number']) && !empty($_POST['phone_number']) && $data['phone_number'] != $_POST['phone_number']) {
     $str = API_ID . API_SECRET . $user->id_vk . "phone_number" . $_POST['phone_number'];
     $sign = rtrim(strtr(base64_encode(hash('sha256', $str, true)), '+/', '-_'), '=');
 
     if(!isset($_POST['sign_phone_number']) || $sign != $_POST['sign_phone_number']) {
         $error = [
             "type" => 3,
-            "message" => "Указанный номер телефона не совпадает с номером указаным во Вконтакте"
+            "message" => "Введенный номер телефона не соответствует номеру, указанному на странице ВКонтакте"
         ];
         $api->assign("error", $error);
         exit;
@@ -178,7 +182,11 @@ if(isset($_POST['phone_number']) && !empty($_POST['phone_number'])) {
 
     $replace[] = $_POST['phone_number'];
 } else {
-    $replace[] = "";
+    if(!$_POST['phone_number']) {
+        $replace[] = "";
+    } else {
+        $replace[] = $data['phone_number'];
+    }
 }
 
 //if(isset($_POST['phone_number'])) {
@@ -218,10 +226,10 @@ if(!isset($_POST['state_balls']) || $_POST['state_balls'] > 5 || $_POST['state_b
 $replace[] = (int)$_POST['state_balls'];
 
 if(isset($_POST['description'])) {
-    if(Text::strlen($_POST['description']) > 5000) {
+    if(Text::strlen($_POST['description']) > 2000) {
         $error = [
             "type" => 3,
-            "message" => "Описание превысило лимит в 5000 символов"
+            "message" => "Описание превысило лимит в 2000 символов"
         ];
         $api->assign("error", $error);
         exit;
@@ -367,7 +375,7 @@ $up_gds->execute($replace);
 
 
 // TODO чтобы админам не высывалось  && $data['id_vk'] != $user->id_vk
-if($user->access > 6) {
+if($user->access > 6 && $data['id_vk'] != $user->id_vk) {
     $ank = new User($data['id_vk']);
 
     $params = [

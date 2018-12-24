@@ -1,50 +1,114 @@
 const elektronika = {
     title: "Электроника",
+    dState: {
+        addEdit: true,
+        filters: true
+    },
     sub: [
         {
-            title: "Телефоны и аксессуары"
+            title: "Телефоны и аксессуары",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Компьютеры и комплектующие"
+            title: "Компьютеры и комплектующие",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Фото / видео"
+            title: "Фото / видео",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Тв / видеотехника"
+            title: "Тв / видеотехника",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Аудиотехника"
+            title: "Аудиотехника",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Игры и игровые приставки"
+            title: "Игры и игровые приставки",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Планшеты / эл. книги и аксессуары"
+            title: "Планшеты / эл. книги и аксессуары",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Ноутбуки и аксессуары"
+            title: "Ноутбуки и аксессуары",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Техника для дома"
+            title: "Техника для дома",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Техника для кухни"
+            title: "Техника для кухни",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Климатическое оборудование"
+            title: "Климатическое оборудование",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Индивидуальный уход"
+            title: "Индивидуальный уход",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Аксессуары и комплектующие"
+            title: "Аксессуары и комплектующие",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Прочая электроника"
+            title: "Прочая электроника",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Ремонт и обслуживание техники"
+            title: "Ремонт и обслуживание техники",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         }
     ]
 };

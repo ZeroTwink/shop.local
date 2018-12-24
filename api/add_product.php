@@ -84,7 +84,7 @@ if(isset($_POST['email']) && !empty($_POST['email'])) {
     if(!isset($_POST['sign_email']) || $sign != $_POST['sign_email']) {
         $error = [
             "type" => 3,
-            "message" => "Указанный E-mail не совпадает с указаным во Вконтакте"
+            "message" => "Введенный E-mail не соответствует E-mail, указанному на странице ВКонтакте"
         ];
         $api->assign("error", $error);
         exit;
@@ -113,7 +113,7 @@ if(isset($_POST['phone_number']) && !empty($_POST['phone_number'])) {
     if(!isset($_POST['sign_phone_number']) || $sign != $_POST['sign_phone_number']) {
         $error = [
             "type" => 3,
-            "message" => "Указанный номер телефона не совпадает с номером указаным во Вконтакте"
+            "message" => "Введенный номер телефона не соответствует номеру, указанному на странице ВКонтакте"
         ];
         $api->assign("error", $error);
         exit;
@@ -274,6 +274,7 @@ $in_news->execute($replace);
 $last_id = Db::me()->lastInsertId();
 
 
+
 if(isset($_FILES['img']) && count($_FILES['img'])) {
     foreach($_FILES['img']['name'] AS $key => $val) {
         $typef = $dir->typeFile($_FILES ['img']['name'][$key]);
@@ -283,8 +284,13 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
         if($rtr = $dir->upload(array($_FILES['img']['tmp_name'][$key] => $namef))) {
             $folder = substr($last_id, -1);
 
+            $rotate = 0;
+            if(!empty($_POST['rotate']) && $_POST['rotate'][$key]) {
+                $rotate = $_POST['rotate'][$key];
+            }
+
             $scr = new ImageResize(H.'/sys/tmp/' . $namef);
-            $scr->resizeToWidth(600);
+            $scr->resizeToWidth(600, $rotate);
             $scr->saveImage(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $key .
                 ".jpg", 80);
 

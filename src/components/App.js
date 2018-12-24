@@ -63,17 +63,46 @@ class App extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.location === nextProps.location) {
-            return;
-        }
+        // console.log(this.lastTabbar, nextProps.location, this.lastLocation);
+        // if (this.props.location === nextProps.location) {
+        //     window.scrollTo({
+        //         top: 0,
+        //         behavior: "smooth"
+        //     });
+        //     return;
+        // }
+        //
+        // if (this.props.location.pathname === nextProps.location.pathname) {
+        //     return;
+        // }
+        //
+        // this.lastLocation = {
+        //     ...this.props.location
+        // };
+    }
 
-        if (this.props.location.pathname === nextProps.location.pathname) {
-            return;
-        }
+    shouldComponentUpdate(nextProps, nextState) {
+        // console.log(this.lastTabbar, nextProps.location.pathname, this.props.location.pathname, this.lastLocation);
+        // console.log(this.lastTabbar, this.props.match.params.pageId);
+        // if(this.lastTabbar === this.props.match.params.pageId) {
+        //     window.scrollTo({
+        //         top: 0,
+        //         behavior: "smooth"
+        //     });
+        //
+        //     return true;
+        // }
+        // console.log(nextProps, nextState);
+        return true;
+    }
 
-        this.lastLocation = {
-            ...this.props.location
-        };
+    componentDidUpdate(prevProps, prevState) {
+        // if(this.lastTabbar === this.props.match.params.pageId) {
+        //     window.scrollTo({
+        //         top: 0,
+        //         behavior: "smooth"
+        //     });
+        // }
     }
 
     onTransition() {
@@ -85,8 +114,18 @@ class App extends Component {
         // }
     }
 
+    clickEpicTabbar(path) {
+        console.log(path, this.props.location.pathname);
+        if(path === this.props.location.pathname) {
+            window.scrollTo(0, 0);
+
+            return;
+        }
+
+        this.props.history.push(path)
+    }
+
     render() {
-        console.log(this.lastLocation);
         const pageId = this.props.match.params.pageId || 'main';
 
         const epics = {main: true, filters: true, add_product: true, notifications: true, menu: true};
@@ -102,7 +141,8 @@ class App extends Component {
         }
 
         let subprops = {
-            lastPathname: this.lastLocation? this.lastLocation.pathname : null
+            lastPathname: this.lastLocation? this.lastLocation.pathname : null,
+            lastTabbar: this.lastTabbar
         };
 
         if(!this.state.renderer) {
@@ -114,24 +154,24 @@ class App extends Component {
                 <UI.Epic activeStory={activeStory} tabbar={
                     <UI.Tabbar>
                         <UI.TabbarItem
-                            onClick={() => this.props.history.push("/main")}
+                            onClick={this.clickEpicTabbar.bind(this, '/main')}
                             selected={this.lastTabbar === 'main'}
                         ><Icon24Home /></UI.TabbarItem>
                         <UI.TabbarItem
-                            onClick={() => this.props.history.push("/filters")}
+                            onClick={this.clickEpicTabbar.bind(this, '/filters')}
                             selected={this.lastTabbar === 'filters'}
                         ><Icon24Filter /></UI.TabbarItem>
                         <UI.TabbarItem
-                            onClick={() => this.props.history.push("/add_product")}
+                            onClick={this.clickEpicTabbar.bind(this, '/add_product')}
                             selected={this.lastTabbar === 'add_product'}
                         ><Icon28AddOutline /></UI.TabbarItem>
                         <UI.TabbarItem
-                            onClick={() => this.props.history.push("/notifications")}
+                            onClick={this.clickEpicTabbar.bind(this, '/notifications')}
                             selected={this.lastTabbar === 'notifications'}
                             label={this.props.user['notifications']['new']? this.props.user['notifications']['new'] : ""}
                         ><Icon28Notification /></UI.TabbarItem>
                         <UI.TabbarItem
-                            onClick={() => this.props.history.push("/menu")}
+                            onClick={this.clickEpicTabbar.bind(this, '/menu')}
                             selected={this.lastTabbar === 'menu'}
                         ><Icon28Menu /></UI.TabbarItem>
                     </UI.Tabbar>

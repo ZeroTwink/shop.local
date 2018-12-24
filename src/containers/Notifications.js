@@ -64,7 +64,7 @@ class Notifications extends Component {
                         <UI.Cell
                             size="l"
                             multiline
-                            description="Мы не сможем присалать Вам уведомления о важных событиях"
+                            description="Мы не сможем присылать Вам уведомления о важных событиях"
                             before={
                                 <UI.Avatar style={{ background: UI.colors.blue_overlight_3 }} size={32}>
                                     <Icon24Notification fill={UI.colors.white} />

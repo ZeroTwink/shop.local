@@ -19,6 +19,7 @@ import Icon24LikeOutline from '@vkontakte/icons/dist/24/like_outline';
 import Icon24Like from '@vkontakte/icons/dist/24/like';
 import Icon24Share from '@vkontakte/icons/dist/24/share';
 import Icon24LogoLivejournal from '@vkontakte/icons/dist/24/logo_livejournal';
+import Icon16Like from '@vkontakte/icons/dist/16/like';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
 
@@ -35,6 +36,8 @@ import {CopyToClipboard} from 'react-copy-to-clipboard';
 import '@vkontakte/vkui/dist/vkui.css';
 import './info.scss';
 import * as gdsUserIdActions from "../../actions/gdsUserId";
+
+import GalleryImages from '../GalleryImages';
 
 
 class Info extends Component {
@@ -59,6 +62,8 @@ class Info extends Component {
 
             contextOpened: false
         };
+
+        this.toggleContext = this.toggleContext.bind(this);
     }
 
     componentDidMount() {
@@ -158,6 +163,10 @@ class Info extends Component {
         });
     }
 
+    componentWillUnmount() {
+        this.props.setPopout(null);
+    }
+
     displayError(message, title, importance) {
         this.props.setPopout(
             <UI.Alert
@@ -180,6 +189,38 @@ class Info extends Component {
         );
     }
 
+    displayActionSheet() {
+        const osname = UI.platform();
+
+        if(+this.props.vk.user.id === +this.state.seller['id']) {
+            return;
+        }
+
+        this.props.setPopout(
+            <UI.ActionSheet
+                onClose={() => this.props.setPopout(null)}
+                title="Действие"
+                text="Выберите подходящий пункт"
+            >
+                <UI.Link href={"https://vk.com/id" + this.state.seller['id']}>
+                    <UI.ActionSheetItem
+                        autoclose
+                        onClick={() => {}}>
+                        Открыть профиль
+                    </UI.ActionSheetItem>
+                </UI.Link>
+                <UI.Link href={"https://vk.me/id" + this.state.seller['id']}>
+                    <UI.ActionSheetItem
+                        autoclose
+                        onClick={() => {}}>
+                        Написать сообщение
+                    </UI.ActionSheetItem>
+                </UI.Link>
+                {osname === UI.IOS && <UI.ActionSheetItem autoclose theme="cancel">Отменить</UI.ActionSheetItem>}
+            </UI.ActionSheet>
+        );
+    }
+
     displayToasts(text) {
         this.props.setPopout(
             <Toasts>
@@ -189,7 +230,11 @@ class Info extends Component {
     }
 
     substr(text) {
-        text = text.replace(/(\r\n|\n\r|\r|\n){2,}/g, "\n\n");
+        if(!text) {
+            text = "";
+        }
+
+        text = text.toString().replace(/(\r\n|\n\r|\r|\n){2,}/g, "\n\n");
         if(this.state.displayAllText) {
             return text;
         }
@@ -211,7 +256,9 @@ class Info extends Component {
         return (
             <div>
                 {t}
-                <UI.Link onClick={() => this.setState({displayAllText: true})}><br /> {title}</UI.Link>
+                <UI.Link onClick={() => this.setState({displayAllText: true})}>
+                    {title? (<div>{title}</div>) : null}
+                </UI.Link>
                 {title2}
             </div>
         );
@@ -265,6 +312,7 @@ class Info extends Component {
         }
 
         let gdsNew = [...this.props.gds['gds_new']];
+        let gdsOpen = [...this.props.gds['open']];
 
         let indexOnArr = null;
         gdsNew.filter((e, i) => {
@@ -275,6 +323,28 @@ class Info extends Component {
 
             return false;
         });
+
+        let indexOnArrOpen = null;
+        gdsOpen.filter((e, i) => {
+            if(+e.id === +this.props.match.params.pId) {
+                indexOnArrOpen = i;
+                return true;
+            }
+
+            return false;
+        });
+
+        if(indexOnArrOpen !== null) {
+            if(type === "add") {
+                gdsOpen[indexOnArrOpen]['favorites'] = +gdsOpen[indexOnArrOpen]['favorites'] + 1;
+            } else {
+                gdsOpen[indexOnArrOpen]['favorites'] = +gdsOpen[indexOnArrOpen]['favorites'] - 1;
+            }
+
+            this.props.gdsUpdate({
+                "open": gdsOpen
+            });
+        }
 
         if(indexOnArr !== null) {
             if(type === "add") {
@@ -287,6 +357,17 @@ class Info extends Component {
                 "gds_new": gdsNew
             });
         }
+
+        // let product = {...this.state.product};
+        // if(type === "add") {
+        //     product['favorites'] = +product['favorites'] + 1;
+        // } else {
+        //     product['favorites'] = +product['favorites'] - 1;
+        // }
+        //
+        // this.setState({
+        //     product: product
+        // });
 
         // Обнуляем кэш избранного, чтобы подгрузить заново с сервера
         this.props.gdsFavoritesSet({
@@ -403,7 +484,7 @@ class Info extends Component {
 
             this.props.setPopout(null);
 
-            if(this.props.lastPathname) {
+            if(this.props.lastPathname && this.props.lastPathname.indexOf('edit_product') === -1) {
                 this.props.history.replace(this.props.lastPathname);
             } else {
                 this.props.history.replace("/main");
@@ -468,6 +549,45 @@ class Info extends Component {
         });
     }
 
+    stateDisplayCheck(subShow = true) {
+        let show = true;
+        if(+this.state.product.category === 4 || +this.state.product.category === 7) {
+            show = false;
+        }
+
+        if(+this.state.product.category && +this.state.product.subcategory === 9) {
+            show = true;
+        }
+
+        if(+this.state.product.category === 1 && +this.state.product.subcategory === 2) {
+            show = false;
+        }
+
+        if(!subShow) {
+            show = false;
+        }
+
+        return show;
+    }
+
+    getPrice(price, country_id) {
+        if(+price === 0) {
+            return (
+                <span style={{fontSize: 12}}>Бесплатно</span>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                {price + " "}
+                <span style={{fontSize: 11}}>{getCurrencyCode(country_id)}</span>
+            </React.Fragment>
+        );
+    }
+
+    viewGalleryImages(image) {
+        this.props.setPopout(<GalleryImages {...this.props} urlChange={"/product/" + this.props.match.params.pId} image={image}/>);
+    }
 
     render() {
         const osname = UI.platform();
@@ -505,14 +625,14 @@ class Info extends Component {
                         <Icon28ChevronBack/> : <Icon24Back/>}</UI.HeaderButton>}
                 >
                     {access? (
-                        <UI.PanelHeaderContent aside={<Icon16Dropdown />} onClick={this.toggleContext.bind(this)}>
+                        <UI.PanelHeaderContent aside={<Icon16Dropdown />} onClick={this.toggleContext}>
                             Объявление
                         </UI.PanelHeaderContent>
                     ) : ("Объявление")}
                 </UI.PanelHeader>
 
                 {access? (
-                    <UI.HeaderContext opened={this.state.contextOpened} onClose={this.toggleContext.bind(this)}>
+                    <UI.HeaderContext opened={this.state.contextOpened} onClose={this.toggleContext}>
                         <UI.List>
                             <UI.Cell
                                 before={<Icon24Delete />}
@@ -548,54 +668,60 @@ class Info extends Component {
                 ) : null}
 
                 <UI.Group title="Фотографии">
-                    <UI.Gallery
-                        slideWidth="100%"
-                        style={{ height: 230 }}
-                        bullets="dark"
-                    >
-                        {allImages.length? allImages.map((e, i) => {
-                            let style = {
-                                backgroundImage: 'url('+window.location.protocol + "//" + window.location.hostname +
-                                "/sys/files/gds/" + e + "?v=" + product['time_update'] + ')',
-                                backgroundSize: "cover"
-                            };
+                    <div style={{position: "relative"}}>
+                        <div className="price_product_img_wrap">
+                            <UI.Tooltip
+                                text="Цена на товар"
+                                isShown={this.state.tooltipPrice}
+                                onClose={() => this.setState({ tooltipPrice: false })}
+                                offsetX={10}
+                            >
+                                <div className="price_product_img"
+                                     onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
+                                    {this.getPrice(product["price"], product['country_id'])}
+                                </div>
+                            </UI.Tooltip>
+                        </div>
 
-                            return (
-                                <div key={i} className="img_gallery" style={style}>
-                                    <div className="price_product_img_wrap">
-                                        <UI.Tooltip
-                                            text="Цена на товар"
-                                            isShown={this.state.tooltipPrice}
-                                            onClose={() => this.setState({ tooltipPrice: false })}
-                                            offsetX={10}
-                                        >
-                                            <div className="price_product_img"
-                                                 onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
-                                                {product["price"] + " " + getCurrencyCode(product['country_id'])}
-                                            </div>
-                                        </UI.Tooltip>
+                        <UI.Gallery
+                            slideWidth="100%"
+                            style={{ height: 230 }}
+                            bullets="dark"
+                        >
+                            {allImages.length? allImages.map((e, i) => {
+                                let style = {
+                                    backgroundImage: 'url('+window.location.protocol + "//" + window.location.hostname +
+                                    "/sys/files/gds/" + e + "?v=" + product['time_update'] + ')',
+                                    backgroundSize: "cover"
+                                };
+
+                                return (
+                                    <div onClick={this.viewGalleryImages.bind(this, window.location.protocol
+                                        + "//" + window.location.hostname +
+                                        "/sys/files/gds/" + e + "?v=" + product['time_update'])}
+                                         key={i} className="img_gallery" style={style}>
+
                                     </div>
+                                );
+                            }) : (
+                                <div className="img_gallery"
+                                     style={{backgroundImage: 'url(/images/no_photo_info.png)', backgroundSize: "cover"}}>
                                 </div>
-                            );
-                        }) : (
-                            <div className="img_gallery"
-                                 style={{backgroundImage: 'url(/images/no_photo_info.png)', backgroundSize: "cover"}}>
-                                <div className="price_product_img_wrap">
-                                    <UI.Tooltip
-                                        text="Цена на товар"
-                                        isShown={this.state.tooltipPrice}
-                                        onClose={() => this.setState({ tooltipPrice: false })}
-                                        offsetX={10}
-                                    >
-                                        <div className="price_product_img"
-                                             onClick={() => this.setState({ tooltipPrice: !this.state.tooltipPrice })}>
-                                            {product["price"] + " " + getCurrencyCode(product['country_id'])}
-                                        </div>
-                                    </UI.Tooltip>
-                                </div>
+                            )}
+                        </UI.Gallery>
+                    </div>
+
+                    <UI.Cell
+                        bottomContent={
+                            <div style={{display: "flex", fontSize: 13, color: "#909399"}}>
+                                <Icon16Like fill="#fb7788"/>
+                                <div style={{width: 30, margin: "-1px 4px 0 6px"}}>{product.favorites}</div>
+                                <img style={{width: 16, height: 16, opacity: 0.4, marginLeft: "auto"}}
+                                     src="/images/view32.png" alt="" />
+                                <div style={{margin: "-1px 0 0 6px"}}>{product.views}</div>
                             </div>
-                        )}
-                    </UI.Gallery>
+                        }
+                        size="l" />
                 </UI.Group>
 
                 <UI.Group>
@@ -648,30 +774,32 @@ class Info extends Component {
                                             </Moment>
                                         </UI.InfoRow>
                                     </UI.Cell>
-                                    <UI.Cell asideContent={
-                                        <UI.Tooltip
-                                            text="Состояние товара: Б/у оценивает продавец по пятибалльной системе.
+                                    {this.stateDisplayCheck()? (
+                                        <UI.Cell asideContent={
+                                            <UI.Tooltip
+                                                text="Состояние товара: Б/у оценивает продавец по пятибалльной системе.
                                             У новых товаров всегда 5 баллов"
-                                            isShown={this.state.tooltipHelp}
-                                            onClose={() => this.setState({ tooltipHelp: false })}
-                                            offsetX={16}
-                                            offsetY={10}
-                                            alignX="right"
-                                        >
-                                            <Icon24helpOutline fill={UI.colors.blue_400}
-                                                               onClick={() => this.setState({
-                                                                   tooltipHelp: !this.state.tooltipHelp
-                                                               })} />
-                                        </UI.Tooltip>
-                                    }>
-                                        <UI.InfoRow title="Состояние товара">
-                                            {product["state"]? "Новый" : "Б/у"}
-                                            <div style={{width: 90}}>
-                                                <img src={"/images/stars/stars" + product["state_balls"] + ".png"}
-                                                     alt="" />
-                                            </div>
-                                        </UI.InfoRow>
-                                    </UI.Cell>
+                                                isShown={this.state.tooltipHelp}
+                                                onClose={() => this.setState({ tooltipHelp: false })}
+                                                offsetX={16}
+                                                offsetY={10}
+                                                alignX="right"
+                                            >
+                                                <Icon24helpOutline fill={UI.colors.blue_400}
+                                                                   onClick={() => this.setState({
+                                                                       tooltipHelp: !this.state.tooltipHelp
+                                                                   })} />
+                                            </UI.Tooltip>
+                                        }>
+                                            <UI.InfoRow title="Состояние товара">
+                                                {product["state"]? "Новый" : "Б/у"}
+                                                <div style={{width: 90}}>
+                                                    <img src={"/images/stars/stars" + product["state_balls"] + ".png"}
+                                                         alt="" />
+                                                </div>
+                                            </UI.InfoRow>
+                                        </UI.Cell>
+                                    ) : null}
                                     <UI.Cell>
                                         <UI.InfoRow title="Страна">
                                             {product['country_title']}
@@ -712,7 +840,9 @@ class Info extends Component {
                                 <UI.Header level="2">Контакты</UI.Header>
                                 <UI.List>
                                     <UI.Cell before={<UI.Avatar src={this.state.seller['photo_50']} size={40} />}
-                                             description="Продавец">
+                                             description="Продавец"
+                                             onClick={+this.props.vk.user.id !== +this.state.seller['id']
+                                                 ? this.displayActionSheet.bind(this) : null}>
                                         {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
                                     </UI.Cell>
                                     {product['phone_number']? (
@@ -746,7 +876,7 @@ class Info extends Component {
                                 <UI.Div>
                                     {this.state.seller['can_write_private_message'] > 0? (
                                         <UI.Link style={{color: "#fff"}}
-                                                 href={"https://vk.com/im?sel=" + this.state.seller['id']}>
+                                                 href={"https://vk.me/id" + this.state.seller['id']}>
                                             <UI.Button before={<Icon24LogoVk fill="#fff"/>} size="xl">
                                                 Написать продавцу
                                             </UI.Button>

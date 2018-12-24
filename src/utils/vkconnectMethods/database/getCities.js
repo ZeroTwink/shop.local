@@ -12,7 +12,8 @@ export default function getCities(params) {
             "important": 1
         }, {
             "id": 650,
-            "title": "Днепропетровск (Днепр)"
+            "title": "Днепропетровск (Днепр)",
+            "region": "Московская область"
         }, {
             "id": 223,
             "title": "Донецк"

@@ -1,35 +1,79 @@
 const detskiyMir = {
     title: "Детский мир",
+    dState: {
+        addEdit: true,
+        filters: true
+    },
     sub: [
         {
-            title: "Детская одежда"
+            title: "Детская одежда",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Детская обувь"
+            title: "Детская обувь",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Детские коляски"
+            title: "Детские коляски",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Детские автокресла"
+            title: "Детские автокресла",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Детская мебель"
+            title: "Детская мебель",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Игрушки"
+            title: "Игрушки",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Детский транспорт"
+            title: "Детский транспорт",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Товары для кормления"
+            title: "Товары для кормления",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Товары для школьников"
+            title: "Товары для школьников",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Прочие детские товары"
+            title: "Прочие детские товары",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         }
     ]
 };

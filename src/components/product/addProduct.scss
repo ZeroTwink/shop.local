@@ -4,13 +4,19 @@
   display: flex;
 
   .img_wrap {
+    position: relative;
     width: 17%;
     height: 44px;
     margin-left: 2.9%;
+    //overflow: hidden;
     border: 1px solid #c8d4de;
-    background-size: cover;
-    background-position: center 35%;
-    background-color: #f8fbff;
+
+    .img_rotate_wrap {
+      height: 44px;
+      background-size: cover;
+      background-position: center 35%;
+      background-color: #f8fbff;
+    }
 
     .icon_wrap {
       display: flex;
@@ -20,8 +26,28 @@
       opacity: 0.2;
     }
 
+    .icon_delete {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background-color: #d7e2ef;
+    }
+
     &:first-child {
       margin-left: 0;
     }
   }
+}
+
+.rotate_img_90 {
+  transform: rotate(90deg);
+}
+.rotate_img_180 {
+  transform: rotate(180deg);
+}
+.rotate_img_270 {
+  transform: rotate(270deg);
 }

@@ -1,41 +1,72 @@
 const zhivotnye = {
     title: "Животные",
+    dState: {
+        addEdit: false,
+        filters: false
+    },
     sub: [
         {
-            title: "Бесплатно (животные и вязка)"
+            title: "Собаки",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Собаки"
+            title: "Кошки",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Кошки"
+            title: "Аквариумистика",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Аквариумистика"
+            title: "Птицы",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Птицы"
+            title: "Грызуны",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Грызуны"
+            title: "Рептилии",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Рептилии"
+            title: "Сельхоз животные",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Сельхоз животные"
+            title: "Другие животные",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Другие животные"
-        },
-        {
-            title: "Зоотовары"
-        },
-        {
-            title: "Вязка"
-        },
-        {
-            title: "Бюро находок"
+            title: "Вязка",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         }
     ]
 };

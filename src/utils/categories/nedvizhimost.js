@@ -1,29 +1,58 @@
 const nedvizhimost = {
     title: "Недвижимость",
+    dState: {
+        addEdit: true,
+        filters: true
+    },
     sub: [
         {
-            title: "Квартиры, комнаты"
+            title: "Квартиры, комнаты",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Дома"
+            title: "Дома",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Земля"
+            title: "Земля",
+            dState: {
+                addEdit: false,
+                filters: false
+            }
         },
         {
-            title: "Коммерческая недвижимость"
+            title: "Коммерческая недвижимость",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Гаражи, парковки"
+            title: "Гаражи, парковки",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Посуточная аренда жилья"
+            title: "Посуточная аренда жилья",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Предложения от застройщиков"
-        },
-        {
-            title: "Недвижимость за рубежом"
+            title: "Недвижимость за рубежом",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         }
     ]
 };

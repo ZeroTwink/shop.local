@@ -15,7 +15,6 @@ import * as sysActions from '../actions/sys';
 import '../components/main.scss';
 
 import Icon16Like from '@vkontakte/icons/dist/16/like';
-// import VKConnect from "../utils/VKConnect";
 
 class Main extends Component {
     constructor(props) {
@@ -29,6 +28,12 @@ class Main extends Component {
 
     componentDidMount() {
         window.scroll(0, this.props.sys['scroll']['main']);
+        // if(this.lastTabbar === pageId) {
+        //     window.scrollTo({
+        //         top: 0,
+        //         behavior: "smooth"
+        //     });
+        // }
 
         if(this.props.sys.refresh) {
             this.props.history.push(decodeURIComponent(this.props.sys.refresh));
@@ -43,6 +48,21 @@ class Main extends Component {
         });
     }
 
+    getPrice(price, country_id) {
+        if(+price === 0) {
+            return (
+                <span style={{fontSize: 12}}>Бесплатно</span>
+            );
+        }
+
+        return (
+            <React.Fragment>
+                {price + " "}
+                <span style={{fontSize: 11}}>{getCurrencyCode(country_id)}</span>
+            </React.Fragment>
+        );
+    }
+
     render() {
         return (
             <UI.Panel id={this.props.id}>
@@ -55,13 +75,13 @@ class Main extends Component {
                         <UI.Gallery
                             slideWidth="100%"
                             style={{ height: 190 }}
-                            bullets="dark"
+                            bullets="light"
                             className="main_gallery_wrapper"
                         >
                             {this.props.gds.gds_city.length? this.props.gds.gds_city.map((e, i) => (
                                 <GalleryItem key={e.id}
                                              ad={e}
-                                             currencyCode={getCurrencyCode(e.country_id)}
+                                             price={this.getPrice(e.price, e.country_id)}
                                              history={this.props.history} />
                             )) : null}
                         </UI.Gallery>
@@ -96,8 +116,7 @@ class Main extends Component {
                                              asideContent={
                                                  <div className="price" style={{color: UI.colors.blue}}>
                                                      <div style={{color: "#fff"}}>
-                                                         {e.price + " "}
-                                                         <span style={{fontSize: 11}}>{getCurrencyCode(e.country_id)}</span>
+                                                         {this.getPrice(e.price, e.country_id)}
                                                      </div>
                                                  </div>
                                              }
@@ -144,7 +163,7 @@ class Main extends Component {
                                                 <div className="h_scroll_item" key={e.id}
                                                      onClick={() => (this.props.history.push("/product/" + e.id))}>
                                                     <div className="price">
-                                                        {e.price + " " + getCurrencyCode(e.country_id)}
+                                                        {this.getPrice(e.price, e.country_id)}
                                                     </div>
                                                     <img className="img_avatar"
                                                          style={{backgroundImage: "url("+image+")" }} alt="" />

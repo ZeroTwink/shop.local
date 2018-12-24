@@ -63,6 +63,10 @@ if(process.env.NODE_ENV === 'production') {
             return;
         }
 
+        if("VKWebAppSetViewSettings" === name) {
+            return;
+        }
+
 
         VKConnectClon.send(name, param);
     };
@@ -89,12 +93,12 @@ if(process.env.NODE_ENV === 'production') {
             "last_name": "Качалка",
             "sex": 2,
             "city": {
-                "id": 625,
-                "title": "Hamburg"
+                "id": 2256,
+                "title": "Горловка"
             },
             "country": {
-                "id": 65,
-                "title": "Германия"
+                "id": 2,
+                "title": "Украина"
             },
             "photo_100": "https://sun1-5.userapi.com/c834304/v834304001/101214/WVtscxWYlCI.jpg?ava=1",
             "photo_200": "https://sun1-11.userapi.com/c834304/v834304001/101213/g7TwDpG11dM.jpg?ava=1",

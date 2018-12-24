@@ -134,14 +134,19 @@ class ImageResize
     /**
      * Ширину изображения делате заддоной, высота автоматически
      * @param int $width
+     * @param int $rotate
      */
-    public function resizeToWidth($width = 0)
+    public function resizeToWidth($width = 0, $rotate = 0)
     {
         $height = round($this->_height * $width / $this->_width);
 
         $newImage = imagecreatetruecolor($width, $height);
 
         imagecopyresampled($newImage, $this->_imageCreate, 0, 0, 0, 0, $width, $height, $this->_width, $this->_height);
+
+        if(!empty($rotate)) {
+            $newImage = imagerotate($newImage, $rotate, 0);
+        }
 
         $this->_saveImage = $newImage;
     }

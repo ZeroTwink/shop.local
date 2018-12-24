@@ -52,7 +52,7 @@ if (file_exists($_SERVER ['DOCUMENT_ROOT'] . '/sys/classes/API.php')) {
 /**
  * @const TIME UNIXTIMESTAMP 
  */
-define('TIME', time() - 3600);
+define('TIME', time());
 /**
  * @const DAY_TIME UNIXTIMESTAMP на начало текущих суток
  */

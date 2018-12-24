@@ -15,6 +15,7 @@ import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
 import Icon32Camera from '@vkontakte/icons/dist/32/camera';
+import Icon16Cancel from '@vkontakte/icons/dist/16/cancel';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
 
@@ -150,14 +151,16 @@ class EditProduct extends Component {
     }
 
     onChangeTitle(e) {
+        let title = String(e.target.value).replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2694-\u2697]|\uD83E[\uDD10-\uDD5D])/g, '');
         this.props.setValues({
-            titleInputValue: e.target.value
+            titleInputValue: title
         });
     }
 
     onChangeCategory(e) {
         this.props.setValues({
-            category: e.target.value
+            category: e.target.value,
+            subcategory: 0
         });
     }
 
@@ -605,8 +608,50 @@ class EditProduct extends Component {
         }
     }
 
+    stateDisplayCheck(subShow = true) {
+        let show = true;
+        // if(+this.props.addProduct.category === 4 || +this.props.addProduct.category === 7) {
+        //     show = false;
+        // }
+        //
+        // if(+this.props.addProduct.category === 4 && +this.props.addProduct.subcategory === 9) {
+        //     show = true;
+        // }
+        //
+        // if(+this.props.addProduct.category === 1 && +this.props.addProduct.subcategory === 2) {
+        //     show = false;
+        // }
+
+        if(categories[this.props.addProduct.category]) {
+            if(!categories[this.props.addProduct.category]['dState']['addEdit']) {
+                show = false;
+            }
+
+            if(categories[this.props.addProduct.category]['sub'][this.props.addProduct.subcategory]) {
+                let sub = categories[this.props.addProduct.category]['sub'][this.props.addProduct.subcategory];
+
+                if(!sub['dState']['addEdit']) {
+                    show = false;
+                }
+            }
+        }
+
+        if(!subShow) {
+            show = false;
+        }
+
+        return show;
+    }
+
     render() {
         const osname = UI.platform();
+
+        let addedImages = 0;
+        for(let i = 0; i < this.props.addProduct.arrImagesLoad.length; i++) {
+            if(this.props.addProduct.arrImagesLoad[i]['image'] !== null) {
+                addedImages++;
+            }
+        }
 
         return (
             <UI.Panel id={this.props.id}>
@@ -664,19 +709,21 @@ class EditProduct extends Component {
                             {this.getOptionSubcategory()}
                         </UI.Select>
 
-                        <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
-                                            onChange={this.onChangeStateProduct.bind(this)}>
-                            <UI.Radio name="type" value="0"
-                                      onChange={() => null}
-                                      checked={!this.props.addProduct.stateProductInputValue}
-                                      description="Товар был в эксплуатации">Б/у</UI.Radio>
-                            <UI.Radio name="type" value="1"
-                                      onChange={() => null}
-                                      checked={this.props.addProduct.stateProductInputValue}
-                                      description="Ни разу не использовался">Новый</UI.Radio>
-                        </UI.FormLayoutGroup>
+                        {this.stateDisplayCheck()? (
+                            <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
+                                                onChange={this.onChangeStateProduct.bind(this)}>
+                                <UI.Radio name="type" value="0"
+                                          onChange={() => null}
+                                          checked={!+this.props.addProduct.stateProductInputValue}
+                                          description="Товар был в эксплуатации">Б/у</UI.Radio>
+                                <UI.Radio name="type" value="1"
+                                          onChange={() => null}
+                                          checked={+this.props.addProduct.stateProductInputValue}
+                                          description="Ни разу не использовался">Новый</UI.Radio>
+                            </UI.FormLayoutGroup>
+                        ) : null}
 
-                        {!this.props.addProduct.stateProductInputValue? (
+                        {this.stateDisplayCheck(!+this.props.addProduct.stateProductInputValue)? (
                             <UI.FormLayoutGroup top="Оцека состояние">
                                 <UI.Slider
                                     step={1}
@@ -696,8 +743,9 @@ class EditProduct extends Component {
                         <UI.File size="xl" name="img[]" accept="image/jpeg,image/png"
                                  onChange={this.fileChange.bind(this)}
                                  top="Фотографии (jpeg, png) вес не более 4 Мб"
-                                 multiple
                                  getRef={(e) => this.fileInput = e}
+                                 level={addedImages >= 5? "secondary" : "primary"}
+                                 disabled={addedImages >= 5}
                                  before={<Icon24Camera />}>
                             Добавить фото
                         </UI.File>
@@ -715,23 +763,28 @@ class EditProduct extends Component {
                                         )
                                     }
                                     return (
-                                        <div key={i} className="img_wrap"
-                                             style={{backgroundImage: "url("+e.image+")"}}
-                                             onClick={this.deleteFileImgPriv.bind(this, i)}>
+                                        <div key={i} className="img_wrap">
+                                            <div className="icon_delete">
+                                                <Icon16Cancel fill="#398ecc"/>
+                                            </div>
+                                            <div className={e['rotate']? "img_rotate_wrap rotate_img_" + e['rotate'] : "img_rotate_wrap"}
+                                                 style={{backgroundImage: "url("+e.image+")"}}
+                                                 onClick={this.deleteFileImgPriv.bind(this, i)}>
 
+                                            </div>
                                         </div>
                                     )
                                 })
                             ) : null}
                         </div>
 
-                        <UI.Textarea top="Описание" placeholder="Описание товара"
+                        <UI.Textarea top="Описание"
                                      onChange={this.onChangeDescription.bind(this)}
                                      value={this.props.addProduct.descriptionInputValue}/>
                     </UI.FormLayout>
                 </UI.Group>
 
-                <UI.Group title="Контакты">
+                <UI.Group title="Контакты" description="Ваши контактные данные в объявлении должны совпадать с указанными ВКонтакте">
                     <UI.FormLayout>
                         <UI.Input type="email" top="E-mail"
                                   value={this.getEmail()}
@@ -748,7 +801,7 @@ class EditProduct extends Component {
                 <UI.Group>
                     <UI.Div>
                         <UI.Button onClick={this.submitForm.bind(this)} level="buy" size="xl">
-                            Отправить
+                            Сохранить
                         </UI.Button>
                     </UI.Div>
                 </UI.Group>

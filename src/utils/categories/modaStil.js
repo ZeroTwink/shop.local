@@ -1,26 +1,58 @@
 const modaStil = {
     title: "Мода и стиль",
+    dState: {
+        addEdit: true,
+        filters: true
+    },
     sub: [
         {
-            title: "Одежда/обувь"
+            title: "Одежда/обувь",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Для свадьбы"
+            title: "Для свадьбы",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Наручные часы"
+            title: "Наручные часы",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Аксессуары"
+            title: "Аксессуары",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Подарки"
+            title: "Подарки",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Красота / здоровье"
+            title: "Красота / здоровье",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         },
         {
-            title: "Мода разное"
+            title: "Мода разное",
+            dState: {
+                addEdit: true,
+                filters: true
+            }
         }
     ]
 };

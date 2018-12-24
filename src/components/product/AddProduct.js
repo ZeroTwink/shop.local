@@ -17,6 +17,7 @@ import categories from '../../utils/categories';
 // import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
 import Icon32Camera from '@vkontakte/icons/dist/32/camera';
+import Icon16Cancel from '@vkontakte/icons/dist/16/cancel';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
 
@@ -29,12 +30,14 @@ class AddProduct extends Component {
         super(props);
 
         this.state = {
-
+            rulesChecked: false
         };
 
         this.formData = null;
 
         this.fileInput = null;
+
+        this.stopHistoryBack = this.stopHistoryBack.bind(this);
     }
 
 
@@ -58,6 +61,8 @@ class AddProduct extends Component {
             descriptionInputValue: "",
             titleInputValue: "",
             priceInputValue: "",
+            emailInputValue: undefined,
+            phoneNumberInputValue: undefined,
             arrImagesLoad: arr
         });
     }
@@ -70,6 +75,10 @@ class AddProduct extends Component {
         this.props.setScroll({
             addProduct: window.pageYOffset
         });
+    }
+
+    stopHistoryBack() {
+        window.history.pushState(null, document.title, window.location.href);
     }
 
     displayError(message) {
@@ -97,7 +106,7 @@ class AddProduct extends Component {
     }
 
     onChangePrice(e) {
-        let val = e.target.value.replace(/[^\d]/g, '');
+        let val = e.target.value.replace(/[^0-9]/g, '');
 
         this.props.setValues({
             priceInputValue: val
@@ -105,14 +114,16 @@ class AddProduct extends Component {
     }
 
     onChangeTitle(e) {
+        let title = String(e.target.value).replace(/([\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2694-\u2697]|\uD83E[\uDD10-\uDD5D])/g, '');
         this.props.setValues({
-            titleInputValue: e.target.value
+            titleInputValue: title
         });
     }
 
     onChangeCategory(e) {
         this.props.setValues({
-            category: e.target.value
+            category: e.target.value,
+            subcategory: 0
         });
     }
 
@@ -160,8 +171,9 @@ class AddProduct extends Component {
     }
 
     onChangePhoneNumber(e) {
+        let tel = String(e.target.value).slice(0, 13);
         this.props.setValues({
-            phoneNumberInputValue: e.target.value
+            phoneNumberInputValue: tel
         });
     }
 
@@ -193,6 +205,11 @@ class AddProduct extends Component {
         this.props.setPopout(<UI.ScreenSpinner />);
 
         this.formData = new FormData();
+
+        if(!this.state.rulesChecked) {
+            this.displayError("В случае отказа от соблюдения установленных правил, Вы не сможете добавить объявление");
+            return;
+        }
 
         for(let i = 0; i < 5; i++) {
             if(this.props.addProduct.arrImagesLoad[i]['file'] !== null) {
@@ -451,6 +468,8 @@ class AddProduct extends Component {
         this.props.setValues({
             arrImagesLoad: arr
         });
+
+        this.props.setPopout(null);
     }
 
     getSelectedCountry() {
@@ -483,6 +502,21 @@ class AddProduct extends Component {
         }
 
         return city;
+    }
+
+    clickSelectedCity() {
+        if(this.props.vk.user['country'] && this.props.vk.user['country']['id'] > 4
+            && !this.props.addProduct['country']) {
+            this.displayError("Необходимо выбрать страну, из списка доступных");
+            return;
+        }
+
+        if(this.props.addProduct['country'] && this.props.addProduct['country']['id'] > 4) {
+            this.displayError("Необходимо выбрать страну, из списка доступных");
+            return;
+        }
+
+        this.props.setActive({view: "choose", panel: "addProductCity"})
     }
 
     getEmail() {
@@ -548,14 +582,62 @@ class AddProduct extends Component {
         }
     }
 
+    stateDisplayCheck(subShow = true) {
+        let show = true;
+        // if(+this.props.addProduct.category === 4 || +this.props.addProduct.category === 7) {
+        //     show = false;
+        // }
+        //
+        // if(+this.props.addProduct.category === 4 && +this.props.addProduct.subcategory === 9) {
+        //     show = true;
+        // }
+        //
+        // if(+this.props.addProduct.category === 1 && +this.props.addProduct.subcategory === 2) {
+        //     show = false;
+        // }
+
+        if(categories[this.props.addProduct.category]) {
+            if(!categories[this.props.addProduct.category]['dState']['addEdit']) {
+                show = false;
+            }
+
+            if(categories[this.props.addProduct.category]['sub'][this.props.addProduct.subcategory]) {
+                let sub = categories[this.props.addProduct.category]['sub'][this.props.addProduct.subcategory];
+
+                if(!sub['dState']['addEdit']) {
+                    show = false;
+                }
+            }
+        }
+
+        if(!subShow) {
+            show = false;
+        }
+
+        return show;
+    }
+
     render() {
         // const osname = UI.platform();
+
+        let addedImages = 0;
+        for(let i = 0; i < this.props.addProduct.arrImagesLoad.length; i++) {
+            if(this.props.addProduct.arrImagesLoad[i]['image'] !== null) {
+                addedImages++;
+            }
+        }
 
         return (
             <UI.Panel id={this.props.id}>
                 <UI.PanelHeader>
                     Новое объявление
                 </UI.PanelHeader>
+
+                {/*<div className="modal_img_rotate_mask">*/}
+                    {/*<div className="modal_img_rotate">*/}
+                        {/*sdfds*/}
+                    {/*</div>*/}
+                {/*</div>*/}
 
                 <UI.Group title="Геоданные">
                     <UI.FormLayout>
@@ -570,7 +652,7 @@ class AddProduct extends Component {
                         <UI.SelectMimicry
                             top={<span>Город <span style={{color: "#4CAF50"}}>*</span></span>}
                             placeholder="Не выбран"
-                            onClick={() => this.props.setActive({view: "choose", panel: "addProductCity"})}
+                            onClick={this.clickSelectedCity.bind(this)}
                         >
                             {this.getSelectedCity()}
                         </UI.SelectMimicry>
@@ -581,13 +663,15 @@ class AddProduct extends Component {
                           description={<span>Поля, отмеченные <span style={{color: "#4CAF50"}}>*</span>, обязательны для заполнения</span>}>
                     <UI.FormLayout>
 
-                        <UI.Input type="number"
+                        <UI.Input type="text"
                                   top={<span>
                                       Цена (целое число) {getCurrencyCode(this.getSelectedCountry()["id"]? this.getSelectedCountry()["id"] : 1)}
                                       <span style={{color: "#4CAF50"}}> *</span>
                                   </span>}
                                   value={this.props.addProduct.priceInputValue}
-                                  onChange={this.onChangePrice.bind(this)} />
+                                  onChange={this.onChangePrice.bind(this)}
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"/>
 
                         <UI.Input type="text"
                                   value={this.props.addProduct.titleInputValue}
@@ -608,17 +692,19 @@ class AddProduct extends Component {
                             {this.getOptionSubcategory()}
                         </UI.Select>
 
-                        <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
-                             onChange={this.onChangeStateProduct.bind(this)}>
-                            <UI.Radio name="type" value="0"
-                                      defaultChecked={!this.props.addProduct.stateProductInputValue}
-                                      description="Товар был в эксплуатации">Б/у</UI.Radio>
-                            <UI.Radio name="type" value="1"
-                                      defaultChecked={this.props.addProduct.stateProductInputValue}
-                                      description="Ни разу не использовался">Новый</UI.Radio>
-                        </UI.FormLayoutGroup>
+                        {this.stateDisplayCheck()? (
+                            <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
+                                                onChange={this.onChangeStateProduct.bind(this)}>
+                                <UI.Radio name="type" value="0"
+                                          defaultChecked={!this.props.addProduct.stateProductInputValue}
+                                          description="Товар был в эксплуатации">Б/у</UI.Radio>
+                                <UI.Radio name="type" value="1"
+                                          defaultChecked={this.props.addProduct.stateProductInputValue}
+                                          description="Ни разу не использовался">Новый</UI.Radio>
+                            </UI.FormLayoutGroup>
+                        ) : null}
 
-                        {!this.props.addProduct.stateProductInputValue? (
+                        {this.stateDisplayCheck(!+this.props.addProduct.stateProductInputValue)? (
                             <UI.FormLayoutGroup top="Оценка состояния">
                                 <UI.Slider
                                     step={1}
@@ -638,8 +724,9 @@ class AddProduct extends Component {
                         <UI.File size="xl" name="img[]" accept="image/jpeg,image/png"
                                  onChange={this.fileChange.bind(this)}
                                  top="Фотографии (jpeg, png) вес не более 4 Мб"
-                                 multiple
                                  getRef={(e) => this.fileInput = e}
+                                 level={addedImages >= 5? "secondary" : "primary"}
+                                 disabled={addedImages >= 5}
                                  before={<Icon24Camera />}>
                             Добавить фото
                         </UI.File>
@@ -657,23 +744,28 @@ class AddProduct extends Component {
                                         )
                                     }
                                     return (
-                                        <div key={i} className="img_wrap"
-                                             style={{backgroundImage: "url("+e.image+")"}}
-                                             onClick={this.deleteFileImgPriv.bind(this, i)}>
+                                        <div key={i} className="img_wrap">
+                                            <div className="icon_delete">
+                                                <Icon16Cancel fill="#398ecc"/>
+                                            </div>
+                                            <div className={e['rotate']? "img_rotate_wrap rotate_img_" + e['rotate'] : "img_rotate_wrap"}
+                                                 style={{backgroundImage: "url("+e.image+")"}}
+                                                 onClick={this.deleteFileImgPriv.bind(this, i)}>
 
+                                            </div>
                                         </div>
                                     )
                                 })
                             ) : null}
                         </div>
 
-                        <UI.Textarea top="Описание" placeholder="Описание товара"
+                        <UI.Textarea top="Описание"
                                      onChange={this.onChangeDescription.bind(this)}
                                      value={this.props.addProduct.descriptionInputValue}/>
                     </UI.FormLayout>
                 </UI.Group>
 
-                <UI.Group title="Контакты">
+                <UI.Group title="Контакты" description="Ваши контактные данные в объявлении должны совпадать с указанными ВКонтакте">
                     <UI.FormLayout>
                         <UI.Input type="email" top="E-mail"
                                   value={this.getEmail()}
@@ -685,6 +777,12 @@ class AddProduct extends Component {
                                   onClick={this.clickPhoneNumber.bind(this)}
                                   onChange={this.onChangePhoneNumber.bind(this)}/>
                     </UI.FormLayout>
+                </UI.Group>
+
+                <UI.Group>
+                    <UI.Checkbox onChange={() => this.setState({rulesChecked: !this.state.rulesChecked})}>
+                        Я согласен с <UI.Link onClick={() => this.props.history.push("/rules")}>правилами</UI.Link>
+                    </UI.Checkbox>
                 </UI.Group>
 
                 <UI.Group>

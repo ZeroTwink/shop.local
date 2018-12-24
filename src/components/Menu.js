@@ -92,11 +92,10 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/about"))}>
                             Информация
                         </UI.Cell>
-                        <UI.Link href="https://vk.com/club171573725">
-                            <UI.Cell before={<Icon24User/>}>
-                                Наша группа
-                            </UI.Cell>
-                        </UI.Link>
+                        <UI.Cell before={<Icon24User/>}
+                                 onClick={() => {window.location.href = "https://vk.com/club171573725"}}>
+                            Наша группа
+                        </UI.Cell>
                         <UI.Cell before={<Icon24Help/>}
                                  onClick={() => (this.props.history.push("/rules"))}>
                             Правила

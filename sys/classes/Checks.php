@@ -4,10 +4,10 @@ class Checks
 {
     static public $_cat = [
         9,
+        6,
         7,
+        4,
         8,
-        5,
-        11,
         11,
         14,
         19,
