@@ -149,6 +149,11 @@ class PageLoader extends Component {
 
                 VKConnect.unsubscribe(clb);
             }
+
+            if("VKWebAppGetUserInfoFailed" === type) {
+                this.displayError("Возникла серверная ошибка, перезапустите сервис");
+                return false;
+            }
         };
 
         VKConnect.subscribe(clb);

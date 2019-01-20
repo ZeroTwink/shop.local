@@ -28,6 +28,12 @@ if(!$gds_city && isset($_GET['country_id']) && !empty($_GET['country_id'])) {
     $gds_city = $res->fetchAll();
 }
 
+if(!$gds_city && !empty($_GET['country_id'])) {
+    $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `country_id` = ? AND `id_user` != ? AND `archive` = 0 ORDER BY `id`, `views` DESC LIMIT 10");
+    $res->execute([$_GET['country_id'], $user->id]);
+    $gds_city = $res->fetchAll();
+}
+
 if(!$gds_city) {
     $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id_user` != ? AND `archive` = 0 ORDER BY `views` DESC LIMIT 10");
     $res->execute([$user->id]);
@@ -53,6 +59,11 @@ for($i = 0; $i < 10; $i++) {
     $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `category` = ? AND `archive` = 0 ORDER BY `id` DESC LIMIT 10");
     $res->execute([$i]);
     $categories[$i] = $res->fetchAll();
+}
+
+
+if($user->ban && $user->ban < TIME) {
+    $user->ban = 0;
 }
 
 $api->assign("categories", $categories);

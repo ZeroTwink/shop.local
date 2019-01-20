@@ -6,7 +6,7 @@ export default class GalleryItem extends Component {
 
         let image = "";
         if(ad['images'] !== "") {
-            image = ad["images"].split(",")[0];
+            image = ad["images"].split(",")[ad['image_preview']];
 
             image = window.location.protocol + "//" + window.location.hostname +
                 "/sys/files/gds/" + image + "?v=" + ad['time_update'];

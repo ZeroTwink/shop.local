@@ -10,14 +10,16 @@ const detskiyMir = {
             dState: {
                 addEdit: true,
                 filters: true
-            }
+            },
+            size: true
         },
         {
             title: "Детская обувь",
             dState: {
                 addEdit: true,
                 filters: true
-            }
+            },
+            size: true
         },
         {
             title: "Детские коляски",

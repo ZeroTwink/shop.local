@@ -292,7 +292,7 @@ class Filters extends Component {
         this.props.gdsFilters.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
-                image = e["images"].split(",")[0];
+                image = e["images"].split(",")[e['image_preview']];
 
                 image = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + image;
@@ -410,7 +410,7 @@ class Filters extends Component {
                                 loader={<UI.Div>
                                     <UI.Spinner size={20} strokeWidth={2}/>
                                 </UI.Div>}>
-                                {items.length? items : (<div className="message_empty">Поиск не дал резултатов</div>)}
+                                {items.length? items : (<div className="message_empty">Поиск не дал результатов</div>)}
                             </InfiniteScroll>
                         </UI.List>
                     )}

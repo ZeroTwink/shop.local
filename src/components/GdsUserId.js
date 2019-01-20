@@ -95,20 +95,26 @@ class Info extends Component {
                 title="Действие"
                 text="Выберите подходящий пункт"
             >
-                <UI.Link href={"https://vk.com/id" + this.props.match.params['pId']}>
-                    <UI.ActionSheetItem
-                        autoclose
-                        onClick={() => {}}>
-                        Открыть профиль
-                    </UI.ActionSheetItem>
-                </UI.Link>
-                <UI.Link href={"https://vk.me/id" + this.props.match.params['pId']}>
-                    <UI.ActionSheetItem
-                        autoclose
-                        onClick={() => {}}>
-                        Написать сообщение
-                    </UI.ActionSheetItem>
-                </UI.Link>
+                <UI.ActionSheetItem
+                    autoclose
+                    onClick={() => {
+                        let a = document.createElement('a');
+                        a.title = "my title text";
+                        a.href = "https://vk.com/id" + this.props.match.params['pId'];
+                        a.click();
+                    }}>
+                    Открыть профиль
+                </UI.ActionSheetItem>
+                <UI.ActionSheetItem
+                    autoclose
+                    onClick={() => {
+                        let a = document.createElement('a');
+                        a.title = "my title text";
+                        a.href = "https://vk.me/id" + this.props.match.params['pId'];
+                        a.click();
+                    }}>
+                    Написать сообщение
+                </UI.ActionSheetItem>
                 {osname === UI.IOS && <UI.ActionSheetItem autoclose theme="cancel">Отменить</UI.ActionSheetItem>}
             </UI.ActionSheet>
         );
@@ -165,7 +171,7 @@ class Info extends Component {
         this.props.gdsUserId.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
-                image = e["images"].split(",")[0];
+                image = e["images"].split(",")[e['image_preview']];
 
                 image = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + image + "?v=" + e['time_update'];
@@ -222,8 +228,6 @@ class Info extends Component {
                         <UI.Cell
                             onClick={+this.props.vk.user.id !== +this.props.match.params['pId']
                                 ? this.displayActionSheet.bind(this) : null}
-                            size="l"
-                            description="Продавец"
                             before={<UI.Avatar size={40} src={this.state.seller['photo_100']}/>}
                         >
                             {this.state.seller['first_name'] + " " + this.state.seller['last_name']}

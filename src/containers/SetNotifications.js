@@ -4,7 +4,7 @@ import axios from '../utils/axios';
 import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
-import Icon24Chevron from '@vkontakte/icons/dist/24/chevron';
+import Icon24Link from '@vkontakte/icons/dist/24/link';
 
 import * as userActions from "../actions/user";
 import * as vkActions from '../actions/vk';
@@ -210,9 +210,9 @@ class SetNotifications extends Component {
                 </UI.Group>
 
                 <UI.Group title="Информация">
-                    <UI.Cell onClick={() => this.props.history.push('/about/archive')} before={<Icon24Chevron/>}>
+                    <UI.Cell onClick={() => this.props.history.push('/about/archive')} before={<Icon24Link/>}>
                         <UI.Link>
-                            Архив?
+                            Что такое архив?
                         </UI.Link>
                     </UI.Cell>
                 </UI.Group>

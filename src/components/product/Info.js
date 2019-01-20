@@ -1,24 +1,18 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import Moment from 'react-moment';
 import axios from '../../utils/axios';
-import categories from '../../utils/categories';
 import Toasts from '../Toasts';
 import * as UI from '@vkontakte/vkui';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
-import Icon24Phone from '@vkontakte/icons/dist/24/phone';
-import Icon24helpOutline from '@vkontakte/icons/dist/24/help_outline';
 import Icon24LinkCircle from '@vkontakte/icons/dist/24/link_circle';
 import Icon24Copy from '@vkontakte/icons/dist/24/copy';
-import Icon24LogoVk from '@vkontakte/icons/dist/24/logo_vk';
-import Icon24Mention from '@vkontakte/icons/dist/24/mention';
 import Icon16Dropdown from '@vkontakte/icons/dist/16/dropdown';
-import Icon24Delete from '@vkontakte/icons/dist/24/delete';
+// import Icon24Delete from '@vkontakte/icons/dist/24/delete';
 import Icon24LikeOutline from '@vkontakte/icons/dist/24/like_outline';
 import Icon24Like from '@vkontakte/icons/dist/24/like';
 import Icon24Share from '@vkontakte/icons/dist/24/share';
-import Icon24LogoLivejournal from '@vkontakte/icons/dist/24/logo_livejournal';
+// import Icon24LogoLivejournal from '@vkontakte/icons/dist/24/logo_livejournal';
 import Icon16Like from '@vkontakte/icons/dist/16/like';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
@@ -38,6 +32,10 @@ import './info.scss';
 import * as gdsUserIdActions from "../../actions/gdsUserId";
 
 import GalleryImages from '../GalleryImages';
+import InfoViewArchive from './InfoViewArchive';
+import InfoTabContacts from './InfoTabContacts';
+import InfoItemsInfo from './InfoItemsInfo';
+import InfoContextMenu from './InfoContextMenu';
 
 
 class Info extends Component {
@@ -46,9 +44,7 @@ class Info extends Component {
 
         this.state = {
             activeTab4: "dial",
-            displayAllText: false,
             tooltipPrice: false,
-            tooltipHelp: false,
 
             waitLoadProduct: true,
 
@@ -141,9 +137,9 @@ class Info extends Component {
             }
 
             let params = {user_ids: res.data.response.product['id_vk'], fields: "photo_50,city,can_write_private_message"};
-            vkActions.apiRequest("users.get", params, this.props.vk.accessToken, res => {
+            vkActions.apiRequest("users.get", params, this.props.vk.accessToken, dataVK => {
                 this.setState({
-                    seller: res[0]
+                    seller: dataVK[0]
                 });
             });
 
@@ -189,78 +185,11 @@ class Info extends Component {
         );
     }
 
-    displayActionSheet() {
-        const osname = UI.platform();
-
-        if(+this.props.vk.user.id === +this.state.seller['id']) {
-            return;
-        }
-
-        this.props.setPopout(
-            <UI.ActionSheet
-                onClose={() => this.props.setPopout(null)}
-                title="Действие"
-                text="Выберите подходящий пункт"
-            >
-                <UI.Link href={"https://vk.com/id" + this.state.seller['id']}>
-                    <UI.ActionSheetItem
-                        autoclose
-                        onClick={() => {}}>
-                        Открыть профиль
-                    </UI.ActionSheetItem>
-                </UI.Link>
-                <UI.Link href={"https://vk.me/id" + this.state.seller['id']}>
-                    <UI.ActionSheetItem
-                        autoclose
-                        onClick={() => {}}>
-                        Написать сообщение
-                    </UI.ActionSheetItem>
-                </UI.Link>
-                {osname === UI.IOS && <UI.ActionSheetItem autoclose theme="cancel">Отменить</UI.ActionSheetItem>}
-            </UI.ActionSheet>
-        );
-    }
-
     displayToasts(text) {
         this.props.setPopout(
             <Toasts>
                 {text}
             </Toasts>
-        );
-    }
-
-    substr(text) {
-        if(!text) {
-            text = "";
-        }
-
-        text = text.toString().replace(/(\r\n|\n\r|\r|\n){2,}/g, "\n\n");
-        if(this.state.displayAllText) {
-            return text;
-        }
-
-        let title = "";
-
-        let t = text;
-        if(text.length > 120) {
-            t = text.slice(0, 120);
-
-            title = "Показать полностью…";
-        }
-
-        let title2 = "";
-        if(t.length < 1) {
-            title2 = "Без описания";
-        }
-
-        return (
-            <div>
-                {t}
-                <UI.Link onClick={() => this.setState({displayAllText: true})}>
-                    {title? (<div>{title}</div>) : null}
-                </UI.Link>
-                {title2}
-            </div>
         );
     }
 
@@ -393,105 +322,7 @@ class Info extends Component {
     toggleContext() {
         this.setState({
             contextOpened: !this.state.contextOpened,
-            tooltipPrice: false,
-            tooltipHelp: false
-        });
-    }
-
-    onClickDeleteGds(confirm) {
-        if(!confirm) {
-            this.props.setPopout(
-                <UI.Alert
-                    actions={[{
-                        title: 'Отменить',
-                        autoclose: true,
-                        style: 'cancel'
-                    }, {
-                        title: 'Удалить',
-                        autoclose: true,
-                        style: 'destructive',
-                        action: () => this.onClickDeleteGds({}, true)
-                    }]}
-                    onClose={() => this.props.setPopout(null)}
-                >
-                    <h2><div style={{color: "#ff473d", textAlign: "center"}}>Удаление</div></h2>
-                    <div style={{textAlign: "center"}}>Вы уверены, что хотите удалить объявление?</div>
-                </UI.Alert>
-            );
-
-            return;
-        }
-
-        this.props.setPopout(<UI.ScreenSpinner />);
-
-        axios.get("/api/remove_product.php", {
-            params: {
-                id: this.props.match.params.pId
-            }
-        }).then(res => {
-            if(res.data.error) {
-                this.displayError(res.data.error.message);
-
-                return;
-            }
-
-
-            let gdsNew = [...this.props.gds['gds_new']];
-            let gdsOpen = [...this.props.gds['open']];
-
-            let indexOnArr = null;
-            gdsNew.filter((e, i) => {
-                if(+e.id === +this.props.match.params.pId) {
-                    indexOnArr = i;
-                    return true;
-                }
-
-                return false;
-            });
-
-            if(indexOnArr !== null) {
-                gdsNew.splice(indexOnArr, 1);
-
-                this.props.gdsUpdate({
-                    "gds_new": gdsNew
-                });
-            }
-
-            let indexOnArrOpen = null;
-            gdsOpen.filter((e, i) => {
-                if(+e.id === +this.props.match.params.pId) {
-                    indexOnArrOpen = i;
-                    return true;
-                }
-
-                return false;
-            });
-
-            if(indexOnArrOpen !== null) {
-                gdsOpen.splice(indexOnArr, 1);
-
-                this.props.gdsUpdate({
-                    "open": gdsOpen
-                });
-            }
-
-            this.props.gdsUserIdSet({
-                items: [],
-                hasMore: true,
-                page: 0,
-                idUser: 0
-            });
-
-            this.props.setPopout(null);
-
-            if(this.props.lastPathname && this.props.lastPathname.indexOf('edit_product') === -1) {
-                this.props.history.replace(this.props.lastPathname);
-            } else {
-                this.props.history.replace("/main");
-            }
-        }).catch(error => {
-            this.props.setPopout(null);
-            console.log(error);
+            tooltipPrice: false
         });
     }
 
@@ -549,27 +380,6 @@ class Info extends Component {
         });
     }
 
-    stateDisplayCheck(subShow = true) {
-        let show = true;
-        if(+this.state.product.category === 4 || +this.state.product.category === 7) {
-            show = false;
-        }
-
-        if(+this.state.product.category && +this.state.product.subcategory === 9) {
-            show = true;
-        }
-
-        if(+this.state.product.category === 1 && +this.state.product.subcategory === 2) {
-            show = false;
-        }
-
-        if(!subShow) {
-            show = false;
-        }
-
-        return show;
-    }
-
     getPrice(price, country_id) {
         if(+price === 0) {
             return (
@@ -585,8 +395,15 @@ class Info extends Component {
         );
     }
 
-    viewGalleryImages(image) {
-        this.props.setPopout(<GalleryImages {...this.props} urlChange={"/product/" + this.props.match.params.pId} image={image}/>);
+    viewGalleryImages(image, allImages, timeUpdate, activeImage, product) {
+        // this.props.history.push("/product/" + this.props.match.params.pId + '/gallery');
+
+        this.props.setPopout(<GalleryImages activeImage={activeImage}
+                                            timeUpdate={timeUpdate}
+                                            allImages={allImages}
+                                            product={product}
+                                            {...this.props}
+                                            urlChange={"/product/" + this.props.match.params.pId}/>);
     }
 
     render() {
@@ -632,39 +449,19 @@ class Info extends Component {
                 </UI.PanelHeader>
 
                 {access? (
-                    <UI.HeaderContext opened={this.state.contextOpened} onClose={this.toggleContext}>
-                        <UI.List>
-                            <UI.Cell
-                                before={<Icon24Delete />}
-                                onClick={this.onClickDeleteGds.bind(this, false)}
-                            >
-                                Удалить объявление
-                            </UI.Cell>
-                            <UI.Cell
-                                before={<Icon24LogoLivejournal />}
-                                onClick={() => this.props.history.push('/edit_product/' + this.props.match.params['pId'])}
-                            >
-                                Изменить объявление
-                            </UI.Cell>
-                        </UI.List>
-                    </UI.HeaderContext>
+                    <InfoContextMenu opened={this.state.contextOpened}
+                                     product={product}
+                                     history={this.props.history}
+                                     match={this.props.match}
+                                     close={this.toggleContext.bind(this)}
+                                     displayError={this.displayError.bind(this)}
+                                     lastPathname={this.props.lastPathname}/>
                 ) : null}
 
                 {+product['archive']? (
-                    <UI.Group style={{background: "#fdfcea"}}>
-                        <UI.Div>
-                            Данное объявление является архивным. Объявление будет удалено в
-                            течении 7 дней, если владелец его не обновит.
-                        </UI.Div>
-
-                        {+this.props.vk.user.id === +product['id_vk']? (
-                            <UI.Div>
-                                <UI.Button onClick={this.restoreArchiveGds.bind(this)} size="xl">
-                                    Восстановить
-                                </UI.Button>
-                            </UI.Div>
-                        ) : null}
-                    </UI.Group>
+                    <InfoViewArchive product={product}
+                                     vkUser={this.props.vk.user}
+                                     restoreArchiveGds={this.restoreArchiveGds.bind(this)}/>
                 ) : null}
 
                 <UI.Group title="Фотографии">
@@ -698,7 +495,7 @@ class Info extends Component {
                                 return (
                                     <div onClick={this.viewGalleryImages.bind(this, window.location.protocol
                                         + "//" + window.location.hostname +
-                                        "/sys/files/gds/" + e + "?v=" + product['time_update'])}
+                                        "/sys/files/gds/" + e + "?v=" + product['time_update'], allImages, product['time_update'], i, product)}
                                          key={i} className="img_gallery" style={style}>
 
                                     </div>
@@ -765,135 +562,9 @@ class Info extends Component {
 
                     {
                         this.state.activeTab4 === 'dial' ? (
-                            <div>
-                                <UI.List>
-                                    <UI.Cell>
-                                        <UI.InfoRow title="Дата публикации">
-                                            <Moment format="DD.MM.YYYY в H:mm" unix>
-                                                {(product.time - 60*60*3) + (60*60*this.props.vk.user['timezone'])}
-                                            </Moment>
-                                        </UI.InfoRow>
-                                    </UI.Cell>
-                                    {this.stateDisplayCheck()? (
-                                        <UI.Cell asideContent={
-                                            <UI.Tooltip
-                                                text="Состояние товара: Б/у оценивает продавец по пятибалльной системе.
-                                            У новых товаров всегда 5 баллов"
-                                                isShown={this.state.tooltipHelp}
-                                                onClose={() => this.setState({ tooltipHelp: false })}
-                                                offsetX={16}
-                                                offsetY={10}
-                                                alignX="right"
-                                            >
-                                                <Icon24helpOutline fill={UI.colors.blue_400}
-                                                                   onClick={() => this.setState({
-                                                                       tooltipHelp: !this.state.tooltipHelp
-                                                                   })} />
-                                            </UI.Tooltip>
-                                        }>
-                                            <UI.InfoRow title="Состояние товара">
-                                                {product["state"]? "Новый" : "Б/у"}
-                                                <div style={{width: 90}}>
-                                                    <img src={"/images/stars/stars" + product["state_balls"] + ".png"}
-                                                         alt="" />
-                                                </div>
-                                            </UI.InfoRow>
-                                        </UI.Cell>
-                                    ) : null}
-                                    <UI.Cell>
-                                        <UI.InfoRow title="Страна">
-                                            {product['country_title']}
-                                        </UI.InfoRow>
-                                    </UI.Cell>
-                                    <UI.Cell>
-                                        <UI.InfoRow title="Город">
-                                            {product['city_title']}
-                                        </UI.InfoRow>
-                                    </UI.Cell>
-                                    <UI.Cell multiline>
-                                        <UI.InfoRow title="Вид товара">
-                                            <div style={{display: "inline-block",
-                                                background: "#ebf1f5",
-                                                borderRadius: 4,
-                                                margin: "4px 8px 4px 0",
-                                                padding: "4px 8px"}}>
-                                                {categories[product.category]['title']}
-                                            </div>
-                                            <div style={{display: "inline-block",
-                                                background: "#ebf1f5",
-                                                borderRadius: 4,
-                                                padding: "4px 8px"}}>
-                                                {categories[product.category]["sub"][product.subcategory]['title']}
-                                            </div>
-                                        </UI.InfoRow>
-                                    </UI.Cell>
-                                    <UI.Cell multiline>
-                                        <UI.InfoRow title="Описание" />
-                                        <div style={{whiteSpace: "pre-line"}}>
-                                            {this.substr(product.description)}
-                                        </div>
-                                    </UI.Cell>
-                                </UI.List>
-                            </div>
+                            <InfoItemsInfo product={product} seller={this.state.seller}/>
                         ) : (
-                            <div>
-                                <UI.Header level="2">Контакты</UI.Header>
-                                <UI.List>
-                                    <UI.Cell before={<UI.Avatar src={this.state.seller['photo_50']} size={40} />}
-                                             description="Продавец"
-                                             onClick={+this.props.vk.user.id !== +this.state.seller['id']
-                                                 ? this.displayActionSheet.bind(this) : null}>
-                                        {this.state.seller['first_name'] + " " + this.state.seller['last_name']}
-                                    </UI.Cell>
-                                    {product['phone_number']? (
-                                        <CopyToClipboard text={product['phone_number']}>
-                                            <UI.Cell onClick={this.displayToasts.bind(this, "Номер скопирован")}
-                                                     before={<Icon24Phone fill={UI.colors.azure_A400}/>}
-                                                     asideContent={<Icon24Copy/>}>
-                                                {product['phone_number']}
-                                            </UI.Cell>
-                                        </CopyToClipboard>
-                                    ) : (
-                                        <UI.Cell before={<Icon24Phone/>}>
-                                            Не указан
-                                        </UI.Cell>
-                                    )}
-                                    {product['email']? (
-                                        <CopyToClipboard text={product['email']}>
-                                            <UI.Cell onClick={this.displayToasts.bind(this, "E-mail скопирован")}
-                                                     before={<Icon24Mention fill={UI.colors.azure_A400}/>}
-                                                     asideContent={<Icon24Copy/>}>
-                                                {product['email']}
-                                            </UI.Cell>
-                                        </CopyToClipboard>
-                                    ) : (
-                                        <UI.Cell before={<Icon24Mention/>}>
-                                            Не указан
-                                        </UI.Cell>
-                                    )}
-                                </UI.List>
-
-                                <UI.Div>
-                                    {this.state.seller['can_write_private_message'] > 0? (
-                                        <UI.Link style={{color: "#fff"}}
-                                                 href={"https://vk.me/id" + this.state.seller['id']}>
-                                            <UI.Button before={<Icon24LogoVk fill="#fff"/>} size="xl">
-                                                Написать продавцу
-                                            </UI.Button>
-                                        </UI.Link>
-                                    ) : (
-                                        <React.Fragment>
-                                            {/*<UI.Button style={{color: "#a7c1e8"}} level="secondary"*/}
-                                                       {/*before={<Icon24LogoVk fill="#a7c1e8"/>} size="xl">*/}
-                                                {/*Написать продавцу*/}
-                                            {/*</UI.Button>*/}
-                                            <div style={{color: "#888888", textAlign: "center"}}>
-                                                У пользователя закрыты личные сообщения
-                                            </div>
-                                        </React.Fragment>
-                                    )}
-                                </UI.Div>
-                            </div>
+                            <InfoTabContacts product={product} seller={this.state.seller}/>
                         )
                     }
                 </UI.Group>

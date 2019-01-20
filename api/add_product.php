@@ -261,19 +261,36 @@ if(!$q) {
 }
 
 
+if(!isset($_POST['size']) || !is_numeric($_POST['size']) || $_POST['size'] > 5000) {
+    $error = [
+        "type" => 3,
+        "message" => "Некорректно указан размер"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+$replace[] = abs($_POST['size']);
+
+
 
 $replace[] = TIME;
 
 $in_news = Db::me()->prepare("INSERT INTO `gds` (`id_user`, `id_vk`, `title`, `category`, `subcategory`, 
 `email`, `phone_number`, `price`, `state`, `state_balls`, 
-`description`, `country_id`, `country_title`, `city_id`, `city_title`, `time`) 
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+`description`, `country_id`, `country_title`, `city_id`, `city_title`, `size`, `time`) 
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 $in_news->execute($replace);
 
 
 $last_id = Db::me()->lastInsertId();
 
 
+$folder = substr($last_id, -1);
+
+$json_arr = [
+    "images" => [],
+    "main_dir" => "folder_" . $folder
+];
 
 if(isset($_FILES['img']) && count($_FILES['img'])) {
     foreach($_FILES['img']['name'] AS $key => $val) {
@@ -282,7 +299,6 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
 
 
         if($rtr = $dir->upload(array($_FILES['img']['tmp_name'][$key] => $namef))) {
-            $folder = substr($last_id, -1);
 
             $rotate = 0;
             if(!empty($_POST['rotate']) && $_POST['rotate'][$key]) {
@@ -290,18 +306,28 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
             }
 
             $scr = new ImageResize(H.'/sys/tmp/' . $namef);
-            $scr->resizeToWidth(600, $rotate);
+            $scr->resizeToWidth(900, $rotate);
             $scr->saveImage(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $key .
                 ".jpg", 80);
+
+            copy(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $key .
+                ".jpg", H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $key .
+                "_original.jpg");
 
             $arr_images[] = "folder_".$folder."/".'post_' . $last_id. "_" . $key . ".jpg";
 
             unlink(H.'/sys/tmp/' . $namef);
+
+            $json_arr['images'][$key] = [
+                "rotate" => 0
+            ];
         }
     }
 
     $res = Db::me()->query("UPDATE `gds` SET `images` = '".implode(",", $arr_images)."' WHERE `id` = $last_id");
 }
+
+file_put_contents(H."/sys/files/gds/folder_".$folder."/" . $last_id . ".json", Json::encode($json_arr));
 
 $res = Db::me()->prepare("SELECT * FROM `gds` WHERE `id` = ? LIMIT 1");
 $res->execute([$last_id]);

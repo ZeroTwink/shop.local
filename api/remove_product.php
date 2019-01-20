@@ -49,7 +49,19 @@ if($product['images']) {
         if(file_exists(H."/sys/files/gds/" . $val)) {
             unlink(H."/sys/files/gds/" . $val);
         }
+
+        $path = substr($val, 0, -4);
+
+        if(file_exists(H."/sys/files/gds/" . $path . "_original.jpg")) {
+            unlink(H."/sys/files/gds/" . $path . "_original.jpg");
+        }
     }
+}
+
+$folder = substr($id, -1);
+
+if(file_exists(H . "/sys/files/gds/folder_" . $folder . "/" . $id . ".json")) {
+    unlink(H . "/sys/files/gds/folder_" . $folder . "/" . $id . ".json");
 }
 
 // TODO чтобы админам не высывалось  && $product['id_vk'] != $user->id_vk

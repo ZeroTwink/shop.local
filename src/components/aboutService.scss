@@ -1,0 +1,18 @@
+.workServiceWrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+  color: #656565;
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  .leftItem {
+    margin-right: auto;
+  }
+
+  .rightItem {
+    color: #449e50;
+  }
+}

@@ -13,6 +13,8 @@ import Icon24Help from '@vkontakte/icons/dist/24/help';
 import Icon24Notification from '@vkontakte/icons/dist/24/notification';
 import Icon24Replay from '@vkontakte/icons/dist/24/replay';
 import Icon24Like from '@vkontakte/icons/dist/24/like';
+import Icon24Document from '@vkontakte/icons/dist/24/document';
+import axios from "../utils/axios";
 
 
 class Menu extends Component {
@@ -27,6 +29,32 @@ class Menu extends Component {
 
     componentDidMount() {
         window.scroll(0, 0);
+    }
+
+    sendToArchive() {
+        axios.get("/api/send_to_archive.php", {
+            params: {
+
+            }
+        }).then(res => {
+            console.log(res);
+
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+
+    deleteFromArchive() {
+        axios.get("/api/delete_from_archive.php", {
+            params: {
+
+            }
+        }).then(res => {
+            console.log(res);
+
+        }).catch(error => {
+            console.log(error);
+        });
     }
 
 
@@ -92,14 +120,31 @@ class Menu extends Component {
                                  onClick={() => (this.props.history.push("/about"))}>
                             Информация
                         </UI.Cell>
-                        <UI.Cell before={<Icon24User/>}
-                                 onClick={() => {window.location.href = "https://vk.com/club171573725"}}>
-                            Наша группа
+                        <UI.Cell before={<Icon24Document/>}
+                                 onClick={() => (this.props.history.push("/about_service"))}>
+                            Сведения о сервисе
+                        </UI.Cell>
+                        <UI.Cell before={<Icon24User/>}>
+                            <UI.Link style={{display: "block", color: "inherit"}} href="https://vk.com/club171573725">
+                                Наша группа
+                            </UI.Link>
                         </UI.Cell>
                         <UI.Cell before={<Icon24Help/>}
                                  onClick={() => (this.props.history.push("/rules"))}>
                             Правила
                         </UI.Cell>
+                        {this.props.user['access'] > 14? (
+                            <React.Fragment>
+                                <UI.Cell before={<Icon24Help/>}
+                                         onClick={this.sendToArchive.bind(this)}>
+                                    Отправка в архив
+                                </UI.Cell>
+                                <UI.Cell before={<Icon24Help/>}
+                                         onClick={this.deleteFromArchive.bind(this)}>
+                                    Удалить из архива
+                                </UI.Cell>
+                            </React.Fragment>
+                        ) : null}
                     </UI.List>
                 </UI.Group>
             </UI.Panel>

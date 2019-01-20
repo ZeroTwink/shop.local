@@ -1,5 +1,8 @@
+import 'core-js/es6';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 import thunk from 'redux-thunk';
 import {HashRouter, Route, Switch} from 'react-router-dom';
 

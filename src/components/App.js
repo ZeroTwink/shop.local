@@ -21,6 +21,7 @@ import Favorites from './Favorites';
 import About from './About';
 import All from './All';
 import Rules from './Rules';
+import AboutService from './AboutService';
 
 import * as sysActions from '../actions/sys';
 
@@ -42,6 +43,16 @@ class App extends Component {
 
         this.lastTabbar = 'main';
         this.lastLocation = null;
+
+        this.arrPath = [
+            'main',
+            'filters',
+            'notifications',
+            'all',
+            'gds_user_id',
+            'favorites',
+            'archive'
+        ];
     }
 
     componentDidMount() {
@@ -63,22 +74,19 @@ class App extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // console.log(this.lastTabbar, nextProps.location, this.lastLocation);
-        // if (this.props.location === nextProps.location) {
-        //     window.scrollTo({
-        //         top: 0,
-        //         behavior: "smooth"
-        //     });
-        //     return;
-        // }
-        //
-        // if (this.props.location.pathname === nextProps.location.pathname) {
-        //     return;
-        // }
-        //
-        // this.lastLocation = {
-        //     ...this.props.location
-        // };
+        let write = false;
+        for(let i = 0; i < this.arrPath.length; i++) {
+            if(nextProps.location.pathname.indexOf(this.arrPath[i]) !== -1) {
+                write = true;
+                break;
+            }
+        }
+
+        if(write) {
+            this.lastLocation = {
+                ...nextProps.location
+            };
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -105,6 +113,10 @@ class App extends Component {
         // }
     }
 
+    // componentWillUpdate(nextProps, nextState) {
+    //     console.log(nextProps.history);
+    // }
+
     onTransition() {
         // console.log(this.props.match.params.pageId, this.props.sys['scroll'][this.props.match.params.pageId]);
         // if(this.props.sys['scroll'][this.props.match.params.pageId]) {
@@ -115,7 +127,6 @@ class App extends Component {
     }
 
     clickEpicTabbar(path) {
-        console.log(path, this.props.location.pathname);
         if(path === this.props.location.pathname) {
             window.scrollTo(0, 0);
 
@@ -219,6 +230,9 @@ class App extends Component {
                     </UI.View>
                     <UI.View popout={this.props.sys.popout} id="archive" activePanel="archive">
                         <Archive id="archive" {...this.props} {...subprops}/>
+                    </UI.View>
+                    <UI.View popout={this.props.sys.popout} id="about_service" activePanel="about_service">
+                        <AboutService id="about_service" {...this.props} {...subprops}/>
                     </UI.View>
 
 

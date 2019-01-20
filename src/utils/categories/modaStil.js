@@ -10,7 +10,8 @@ const modaStil = {
             dState: {
                 addEdit: true,
                 filters: true
-            }
+            },
+            size: true
         },
         {
             title: "Для свадьбы",
@@ -52,7 +53,8 @@ const modaStil = {
             dState: {
                 addEdit: true,
                 filters: true
-            }
+            },
+            size: true
         }
     ]
 };

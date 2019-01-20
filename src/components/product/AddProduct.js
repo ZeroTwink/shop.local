@@ -16,7 +16,7 @@ import categories from '../../utils/categories';
 // import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 // import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
-import Icon32Camera from '@vkontakte/icons/dist/32/camera';
+// import Icon32Camera from '@vkontakte/icons/dist/32/camera';
 import Icon16Cancel from '@vkontakte/icons/dist/16/cancel';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
@@ -24,6 +24,8 @@ import getCurrencyCode from '../../helpers/getCurrencyCode';
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
 import * as gdsUserIdActions from "../../actions/gdsUserId";
+
+import Moment from 'react-moment';
 
 class AddProduct extends Component {
     constructor(props) {
@@ -37,12 +39,18 @@ class AddProduct extends Component {
 
         this.fileInput = null;
 
-        this.stopHistoryBack = this.stopHistoryBack.bind(this);
+        // this.stopHistoryBack = this.stopHistoryBack.bind(this);
     }
 
 
     componentDidMount() {
         window.scroll(0, this.props.sys['scroll']['addProduct']);
+
+        if(+this.props.user['ban']) {
+            this.displayAlertBan();
+
+            return;
+        }
 
         if(this.props.addProduct.arrImagesLoad.length && !this.props.addProduct.isEditProduct) {
             return;
@@ -77,9 +85,9 @@ class AddProduct extends Component {
         });
     }
 
-    stopHistoryBack() {
-        window.history.pushState(null, document.title, window.location.href);
-    }
+    // stopHistoryBack() {
+    //     window.history.pushState(null, document.title, window.location.href);
+    // }
 
     displayError(message) {
         this.props.setPopout(
@@ -130,6 +138,14 @@ class AddProduct extends Component {
     onChangeSubcategory(e) {
         this.props.setValues({
             subcategory: e.target.value
+        });
+    }
+
+    onChangeSize(e) {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+
+        this.props.setValues({
+            size: val
         });
     }
 
@@ -321,6 +337,12 @@ class AddProduct extends Component {
             this.formData.append('subcategory', 0);
         }
 
+        if(this.props.addProduct.size) {
+            this.formData.append('size', this.props.addProduct.size);
+        } else {
+            this.formData.append('size', 0);
+        }
+
         this.formData.append('state', this.props.addProduct.stateProductInputValue);
 
         if(this.props.addProduct.stateBallsInputValue !== "") {
@@ -360,63 +382,62 @@ class AddProduct extends Component {
             data: this.formData,
             config: { headers: {'Content-Type': 'multipart/form-data' }}
         })
-        .then((response) => {
-            this.props.setPopout(null);
+            .then((response) => {
+                this.props.setPopout(null);
 
-            if(response.data.error) {
-                this.displayError(response.data.error.message);
+                if(response.data.error) {
+                    this.displayError(response.data.error.message);
 
-                return;
-            }
+                    return;
+                }
 
-            let gdsNew = [...this.props.gds['gds_new']];
-            gdsNew.unshift(response.data.response["product"]);
+                let gdsNew = [...this.props.gds['gds_new']];
+                gdsNew.unshift(response.data.response["product"]);
 
-            let cats = null;
-            if(this.props.gds.categories[this.props.addProduct.category]) {
-                let cats = {...this.props.gds.categories};
+                let cats = null;
+                if(this.props.gds.categories[this.props.addProduct.category]) {
+                    let cats = {...this.props.gds.categories};
 
-                cats[this.props.addProduct.category].unshift(response.data.response["product"]);
-            }
+                    cats[this.props.addProduct.category].unshift(response.data.response["product"]);
+                }
 
-            this.props.gdsUpdate({
-                "gds_new": gdsNew,
-                "categories": cats? cats : this.props.gds.categories
+                this.props.gdsUpdate({
+                    "gds_new": gdsNew,
+                    "categories": cats? cats : this.props.gds.categories
+                });
+
+
+                // let arr = [];
+                // for(let i = 0; i < 5; i++) {
+                //     let data = {
+                //         image: null,
+                //         file: null
+                //     };
+                //     arr.push(data);
+                // }
+                this.props.setValues({
+                    descriptionInputValue: "",
+                    titleInputValue: "",
+                    priceInputValue: "",
+                    arrImagesLoad: []
+                });
+
+                this.props.gdsUserIdSet({
+                    items: [],
+                    hasMore: true,
+                    page: 0,
+                    idUser: 0
+                });
+
+                this.props.history.replace("/product/" + response.data.response["product"]['id']);
+            })
+            .catch((response) => {
+                console.log(response);
+                this.props.setPopout(null);
             });
-
-
-            // let arr = [];
-            // for(let i = 0; i < 5; i++) {
-            //     let data = {
-            //         image: null,
-            //         file: null
-            //     };
-            //     arr.push(data);
-            // }
-            this.props.setValues({
-                descriptionInputValue: "",
-                titleInputValue: "",
-                priceInputValue: "",
-                arrImagesLoad: []
-            });
-
-            this.props.gdsUserIdSet({
-                items: [],
-                hasMore: true,
-                page: 0,
-                idUser: 0
-            });
-
-            this.props.history.replace("/product/" + response.data.response["product"]['id']);
-        })
-        .catch((response) => {
-            console.log(response);
-            this.props.setPopout(null);
-        });
     }
 
     fileChange(e) {
-        console.log(e.target.files);
         if(!e.target.files[0]) {
             return;
         }
@@ -435,13 +456,27 @@ class AddProduct extends Component {
             return;
         }
 
+        let arr = [...this.props.addProduct.arrImagesLoad];
+
+        for(let i = 0; i < 5; i++) {
+            if(arr[i]['image'] === null) {
+                arr[i]['loading'] = true;
+
+                break;
+            }
+        }
+
+        this.props.setValues({
+            arrImagesLoad: arr
+        });
+
         this.imageReadPriv(e.target.files[0], (img) => {
-            let arr = [...this.props.addProduct.arrImagesLoad];
 
             for(let i = 0; i < 5; i++) {
                 if(arr[i]['image'] === null) {
                     arr[i]['image'] = img;
                     arr[i]['file'] = file;
+                    arr[i]['loading'] = false;
 
                     break;
                 }
@@ -465,8 +500,17 @@ class AddProduct extends Component {
         arr[i]['image'] = null;
         arr[i]['file'] = null;
 
+        let arrN = arr.filter((r) => r['image'] !== null);
+
+        for(let k = arrN.length; k < 5; k++) {
+            arrN[k] = {
+                image: null,
+                file: null
+            };
+        }
+
         this.props.setValues({
-            arrImagesLoad: arr
+            arrImagesLoad: arrN
         });
 
         this.props.setPopout(null);
@@ -617,6 +661,49 @@ class AddProduct extends Component {
         return show;
     }
 
+    sizeDisplayCheck() {
+        let show = false;
+
+        let category = this.props.addProduct.category || 0;
+        let subcategory = this.props.addProduct.subcategory || 0;
+
+        if(categories[category]['sub'][subcategory]) {
+            let sub = categories[category]['sub'][subcategory];
+
+            if(sub['size']) {
+                show = true;
+            }
+        }
+
+        return show;
+    }
+
+
+    displayAlertBan() {
+        this.props.setPopout(
+            <UI.Alert
+                actions={[{
+                    title: 'OK',
+                    autoclose: true,
+                    style: 'destructive'
+                }]}
+                onClose={() => {
+                    this.props.setPopout(null);
+
+                    this.props.history.replace("/main");
+                }}
+            >
+                <h2><div style={{color: "#ff473d", textAlign: "center"}}>Заблокированы</div></h2>
+                <div style={{textAlign: "center"}}>Вы нарушили правила. Возможность публиковать
+                    объявления будет доступна:
+                    <Moment format=" DD.MM.YYYY в H:mm" unix>
+                        {(this.props.user['ban'] - 60*60*3) + (60*60*this.props.vk.user['timezone'])}
+                    </Moment>
+                </div>
+            </UI.Alert>
+        );
+    }
+
     render() {
         // const osname = UI.platform();
 
@@ -634,9 +721,9 @@ class AddProduct extends Component {
                 </UI.PanelHeader>
 
                 {/*<div className="modal_img_rotate_mask">*/}
-                    {/*<div className="modal_img_rotate">*/}
-                        {/*sdfds*/}
-                    {/*</div>*/}
+                {/*<div className="modal_img_rotate">*/}
+                {/*sdfds*/}
+                {/*</div>*/}
                 {/*</div>*/}
 
                 <UI.Group title="Геоданные">
@@ -692,6 +779,15 @@ class AddProduct extends Component {
                             {this.getOptionSubcategory()}
                         </UI.Select>
 
+                        {this.sizeDisplayCheck()? (
+                            <UI.Input type="text"
+                                      top="Размер"
+                                      value={this.props.addProduct.size || ""}
+                                      onChange={this.onChangeSize.bind(this)}
+                                      inputMode="numeric"
+                                      pattern="[0-9]*"/>
+                        ) : null}
+
                         {this.stateDisplayCheck()? (
                             <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
                                                 onChange={this.onChangeStateProduct.bind(this)}>
@@ -728,21 +824,26 @@ class AddProduct extends Component {
                                  level={addedImages >= 5? "secondary" : "primary"}
                                  disabled={addedImages >= 5}
                                  before={<Icon24Camera />}>
-                            Добавить фото
+                            Добавить фото {addedImages + " / " + 5}
                         </UI.File>
 
                         <div className="file_img_wrapper">
                             {this.props.addProduct.arrImagesLoad? (
                                 this.props.addProduct.arrImagesLoad.map((e, i) => {
-                                    if(e.image === null) {
+                                    if(e.loading) {
                                         return (
                                             <div key={i} className="img_wrap">
                                                 <div className="icon_wrap">
-                                                    <Icon32Camera />
+                                                    <UI.Spinner size={20} strokeWidth={2}/>
                                                 </div>
                                             </div>
                                         )
                                     }
+
+                                    if(e.image === null) {
+                                        return null;
+                                    }
+
                                     return (
                                         <div key={i} className="img_wrap">
                                             <div className="icon_delete">

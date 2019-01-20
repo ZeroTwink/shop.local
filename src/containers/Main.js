@@ -96,7 +96,7 @@ class Main extends Component {
                             {this.props.gds.gds_new.length? this.props.gds.gds_new.map((e, i) => {
                                 let image = "";
                                 if(e['images'] !== "") {
-                                    image = e["images"].split(",")[0];
+                                    image = e["images"].split(",")[e['image_preview']];
 
                                     image = window.location.protocol + "//" + window.location.hostname +
                                         "/sys/files/gds/" + image + "?v=" + e['time_update'];
@@ -139,7 +139,7 @@ class Main extends Component {
                         </UI.List>
                     </UI.Group>
 
-                    {Object.keys(this.props.gds.categories).map((key) => (
+                    {Object.keys(this.props.gds.categories).map((key, i) => (
                         this.props.gds.categories[key].length? (
                             <UI.Group key={key} style={{ paddingBottom: 16 }}>
                                 <UI.Header level="2"
@@ -152,7 +152,7 @@ class Main extends Component {
                                         {this.props.gds.categories[key].map((e, i) => {
                                             let image = "";
                                             if(e['images'] !== "") {
-                                                image = e["images"].split(",")[0];
+                                                image = e["images"].split(",")[e['image_preview']];
 
                                                 image = window.location.protocol + "//" + window.location.hostname +
                                                     "/sys/files/gds/" + image + "?v=" + e['time_update'];

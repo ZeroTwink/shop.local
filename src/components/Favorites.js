@@ -109,7 +109,7 @@ class Favorites extends Component {
         this.props.gdsFavorites.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
-                image = e["images"].split(",")[0];
+                image = e["images"].split(",")[e['image_preview']];
 
                 image = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + image;
@@ -161,7 +161,7 @@ class Favorites extends Component {
                     Избранное
                 </UI.PanelHeader>
 
-                <UI.Group title="Избранное">
+                <UI.Group>
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}

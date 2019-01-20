@@ -128,7 +128,7 @@ class All extends Component {
             });
 
             let hasMore = true;
-            if(res.data.response.gds.length < 10) {
+            if(res.data.response.gds.length < 40) {
                 hasMore = false;
             }
 
@@ -164,7 +164,7 @@ class All extends Component {
         this.props.gdsAll.items.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
-                image = e["images"].split(",")[0];
+                image = e["images"].split(",")[e['image_preview']];
 
                 image = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + image;

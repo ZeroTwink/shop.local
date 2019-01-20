@@ -93,7 +93,7 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      width: 100%;
+      right: 0;
       height: 50px;
       padding: 4px 14px;
       color: #fff;
@@ -196,6 +196,116 @@
       max-height:100%;
       cursor: move;
       touch-action: none;
+    }
+  }
+
+  .imageContainerNext {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 100%;
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+  }
+
+  .imageContainerPrev {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    overflow: hidden;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: -100%;
+    margin-left: -20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+  }
+
+  .textByButtons {
+    position: absolute;
+    left: 50%;
+    bottom: 100px;
+    width: 80%;
+    padding: 6px 12px;
+    font-size: 15px;
+    z-index: 2;
+    text-align: center;
+    border-radius: 4px;
+    transform: translateX(-50%);
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .buttonsAppleWrap {
+    position: absolute;
+    left: 50%;
+    bottom: 48px;
+    width: 120px;
+    height: 40px;
+    margin-left: -60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 2;
+    border-radius: 4px;
+    border: 1px solid #4c4c4c;
+    color: #fff;
+    background: #fff;
+
+    .buttonsAppleItem {
+      padding: 10px 0;
+      flex-shrink: 0;
+      max-width: 100%;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .item_apple_in {
+      display: inline-block;
+      text-align: center;
+    }
+  }
+
+  .imageFooter {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    //padding-left: 44px;
+    font-size: 16px;
+    z-index: 2;
+    border-top: 1px solid #4c4c4c;
+    color: #fff;
+    background: linear-gradient(transparent, rgba(0,0,0,.8));
+
+    .footerItem {
+      padding: 10px 0;
+      flex-shrink: 0;
+      max-width: 100%;
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    .item_in {
+      display: inline-block;
+      text-align: center;
     }
   }
 }

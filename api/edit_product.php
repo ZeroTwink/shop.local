@@ -42,6 +42,14 @@ if($data['id_vk'] != $user->id_vk && $user->access <= 6) {
 }
 
 
+$folder = substr($id, -1);
+
+$json_arr = "";
+if(file_exists(H . "/sys/files/gds/folder_" . $folder . "/" . $id . ".json")) {
+    $json_arr = Json::decode(file_get_contents(H . "/sys/files/gds/folder_" . $folder . "/" . $id . ".json"));
+}
+
+
 $all_images = [];
 if($data['images']) {
     $all_images = explode(',', $data['images']);
@@ -52,16 +60,32 @@ if(isset($_POST['delete_images']) && $_POST['delete_images'] != "") {
     $arr_delete = explode(',', $_POST['delete_images']);
 }
 
+
 for($i = 0; $i < count($arr_delete); $i++) {
-    if(file_exists(H."/sys/files/gds/" . $all_images[$arr_delete[$i]])) {
-        unlink(H."/sys/files/gds/" . $all_images[$arr_delete[$i]]);
+    $key = array_search($arr_delete[$i], $all_images);
+
+    $path = substr($all_images[$key], 0, -4);
+
+    if(file_exists(H."/sys/files/gds/" . $all_images[$key])) {
+        unlink(H."/sys/files/gds/" . $all_images[$key]);
     }
 
-    $all_images[$arr_delete[$i]] = "";
+    if(file_exists(H."/sys/files/gds/" . $path . "_original.jpg")) {
+        unlink(H."/sys/files/gds/" . $path . "_original.jpg");
+    }
+
+    unset($all_images[$key]);
+
+    if($json_arr) {
+        unset($json_arr['images'][$key]);
+    }
 }
 
-for($i = count($all_images); $i < 5; $i++) {
-    $all_images[$i] = "";
+
+$all_images = array_values($all_images);
+
+if($json_arr) {
+    $json_arr['images'] = array_values($json_arr['images']);
 }
 
 
@@ -310,10 +334,20 @@ if(!$q) {
     exit;
 }
 
+if(!isset($_POST['size']) || !is_numeric($_POST['size']) || $_POST['size'] > 5000) {
+    $error = [
+        "type" => 3,
+        "message" => "Некорректно указан размер"
+    ];
+    $api->assign("error", $error);
+    exit;
+}
+$replace[] = abs($_POST['size']);
+
 
 $last_id = $id;
-$folder = substr($last_id, -1);
-$index_arr = 0;
+
+$index_arr = count($all_images);
 if(isset($_FILES['img']) && count($_FILES['img'])) {
     foreach($_FILES['img']['name'] AS $key => $val) {
         $typef = $dir->typeFile($_FILES ['img']['name'][$key]);
@@ -321,33 +355,28 @@ if(isset($_FILES['img']) && count($_FILES['img'])) {
 
         if($rtr = $dir->upload(array($_FILES['img']['tmp_name'][$key] => $namef))) {
 
-            for($i = 0; $i < 5; $i++) {
-                if(!$all_images[$i]) {
-                    $index_arr = $i;
-
-                    break;
-                }
-            }
-
             $scr = new ImageResize(H.'/sys/tmp/' . $namef);
-            $scr->resizeToWidth(600);
+            $scr->resizeToWidth(900);
             $scr->saveImage(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $index_arr .
                 ".jpg", 80);
 
+            copy(H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $index_arr .
+                ".jpg", H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id . "_" . $index_arr .
+                "_original.jpg");
+
             $all_images[$index_arr] = "folder_".$folder."/".'post_' . $last_id. "_" . $index_arr . ".jpg";
+
+            if($json_arr) {
+                $json_arr['images'][$index_arr] = [];
+                $json_arr['images'][$index_arr]['rotate'] = 0;
+            }
+
+            $index_arr++;
 
             unlink(H.'/sys/tmp/' . $namef);
         }
     }
 }
-
-for($i = 0; $i < 5; $i++) {
-    if(!$all_images[$i]) {
-        unset($all_images[$i]);
-    }
-}
-
-$all_images = array_values($all_images);
 
 
 $all_images_finish = [];
@@ -358,6 +387,12 @@ if(isset($_POST['delete_images']) && $_POST['delete_images'] != "") {
             H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id. "_" . $i . ".jpg");
 
         $all_images_finish[] = "folder_".$folder."/".'post_' . $last_id. "_" . $i . ".jpg";
+
+        $path = substr($all_images[$i], 0, -4);
+        if(file_exists(H."/sys/files/gds/". $path . "_original.jpg")) {
+            $lol2 = rename(H."/sys/files/gds/". $path . "_original.jpg",
+                H."/sys/files/gds/folder_".$folder."/".'post_' . $last_id. "_" . $i . "_original.jpg");
+        }
     }
 
     $all_images = $all_images_finish;
@@ -370,8 +405,12 @@ $replace[] = $id;
 
 $up_gds = Db::me()->prepare("UPDATE `gds` SET `title` = ?, `category` = ?, `subcategory` = ?, `email` = ?, 
 `phone_number` = ?, `price` = ?, `state` = ?, `state_balls` = ?, `description` = ?, `country_id` = ?, 
-`country_title` = ?, `city_id` = ?, `city_title` = ?, `images` = ?, `time_update` = ? WHERE `id` = ? LIMIT 1");
+`country_title` = ?, `city_id` = ?, `city_title` = ?, `size` = ?, `images` = ?, `time_update` = ? WHERE `id` = ? LIMIT 1");
 $up_gds->execute($replace);
+
+if($json_arr) {
+    file_put_contents(H . "/sys/files/gds/folder_" . $folder . "/" . $id . ".json", Json::encode($json_arr));
+}
 
 
 // TODO чтобы админам не высывалось  && $data['id_vk'] != $user->id_vk

@@ -145,7 +145,7 @@ class ImageResize
         imagecopyresampled($newImage, $this->_imageCreate, 0, 0, 0, 0, $width, $height, $this->_width, $this->_height);
 
         if(!empty($rotate)) {
-            $newImage = imagerotate($newImage, $rotate, 0);
+            $newImage = imagerotate($newImage, -$rotate, 0);
         }
 
         $this->_saveImage = $newImage;

@@ -14,7 +14,7 @@ import categories from '../../utils/categories';
 import Icon28ChevronBack from '@vkontakte/icons/dist/28/chevron_back';
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 import Icon24Camera from '@vkontakte/icons/dist/24/camera';
-import Icon32Camera from '@vkontakte/icons/dist/32/camera';
+// import Icon32Camera from '@vkontakte/icons/dist/32/camera';
 import Icon16Cancel from '@vkontakte/icons/dist/16/cancel';
 
 import getCurrencyCode from '../../helpers/getCurrencyCode';
@@ -22,6 +22,8 @@ import getCurrencyCode from '../../helpers/getCurrencyCode';
 import '@vkontakte/vkui/dist/vkui.css';
 import './addProduct.scss';
 import containsMat from "../../helpers/containsMat";
+import * as gdsUserIdActions from "../../actions/gdsUserId";
+import * as gdsFavoritesActions from "../../actions/gdsFavorites";
 
 class EditProduct extends Component {
     constructor(props) {
@@ -73,7 +75,8 @@ class EditProduct extends Component {
             for(let i = 0; i < 5; i++) {
                 let data = {
                     image: null,
-                    file: null
+                    file: null,
+                    path: null
                 };
                 arr.push(data);
             }
@@ -81,6 +84,8 @@ class EditProduct extends Component {
             for(let i = 0; i < images.length; i++) {
                 arr[i]['image'] = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + images[i] + "?v=" + p['time_update'];
+
+                arr[i]['path'] = images[i];
             }
 
             this.props.setValues({
@@ -88,6 +93,7 @@ class EditProduct extends Component {
                 titleInputValue: String(p['title']),
                 category: String(p['category']),
                 subcategory: String(p['subcategory']),
+                size: String(p['size']),
                 stateProductInputValue: String(p['state']),
                 stateBallsInputValue: String(p['state_balls']),
                 descriptionInputValue: String(p['description']),
@@ -167,6 +173,14 @@ class EditProduct extends Component {
     onChangeSubcategory(e) {
         this.props.setValues({
             subcategory: e.target.value
+        });
+    }
+
+    onChangeSize(e) {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+
+        this.props.setValues({
+            size: val
         });
     }
 
@@ -348,6 +362,12 @@ class EditProduct extends Component {
             this.formData.append('subcategory', 0);
         }
 
+        if(this.props.addProduct.size) {
+            this.formData.append('size', this.props.addProduct.size);
+        } else {
+            this.formData.append('size', 0);
+        }
+
         this.formData.append('state', this.props.addProduct.stateProductInputValue);
 
         if(this.props.addProduct.stateBallsInputValue !== "") {
@@ -446,6 +466,19 @@ class EditProduct extends Component {
                     arrImagesLoad: []
                 });
 
+                this.props.gdsUserIdSet({
+                    items: [],
+                    hasMore: true,
+                    page: 0,
+                    idUser: 0
+                });
+
+                this.props.gdsFavoritesSet({
+                    items: [],
+                    hasMore: true,
+                    page: 0
+                });
+
                 this.props.history.replace("/product/" + this.props.match.params['pId']);
             })
             .catch((response) => {
@@ -499,14 +532,29 @@ class EditProduct extends Component {
 
     deleteFileImgPriv(i) {
         let arr = [...this.props.addProduct.arrImagesLoad];
+        let deleteImages = [...this.props.addProduct.deleteImages];
 
-        this.props.addProduct['deleteImages'].push(i);
+        if(arr[i]['path'] !== null) {
+            deleteImages.push(arr[i]['path']);
+        }
 
         arr[i]['image'] = null;
         arr[i]['file'] = null;
+        arr[i]['path'] = null;
+
+        let arrN = arr.filter((r) => r['image'] !== null);
+
+        for(let k = arrN.length; k < 5; k++) {
+            arrN[k] = {
+                image: null,
+                file: null,
+                path: null
+            };
+        }
 
         this.props.setValues({
-            arrImagesLoad: arr
+            deleteImages: deleteImages,
+            arrImagesLoad: arrN
         });
     }
 
@@ -643,6 +691,23 @@ class EditProduct extends Component {
         return show;
     }
 
+    sizeDisplayCheck() {
+        let show = false;
+
+        let category = this.props.addProduct.category || 0;
+        let subcategory = this.props.addProduct.subcategory || 0;
+
+        if(categories[category]['sub'][subcategory]) {
+            let sub = categories[category]['sub'][subcategory];
+
+            if(sub['size']) {
+                show = true;
+            }
+        }
+
+        return show;
+    }
+
     render() {
         const osname = UI.platform();
 
@@ -709,6 +774,15 @@ class EditProduct extends Component {
                             {this.getOptionSubcategory()}
                         </UI.Select>
 
+                        {this.sizeDisplayCheck()? (
+                            <UI.Input type="text"
+                                      top="Размер"
+                                      value={this.props.addProduct.size || ""}
+                                      onChange={this.onChangeSize.bind(this)}
+                                      inputMode="numeric"
+                                      pattern="[0-9]*"/>
+                        ) : null}
+
                         {this.stateDisplayCheck()? (
                             <UI.FormLayoutGroup top={<span>Состояние товара <span style={{color: "#4CAF50"}}>*</span></span>}
                                                 onChange={this.onChangeStateProduct.bind(this)}>
@@ -747,20 +821,14 @@ class EditProduct extends Component {
                                  level={addedImages >= 5? "secondary" : "primary"}
                                  disabled={addedImages >= 5}
                                  before={<Icon24Camera />}>
-                            Добавить фото
+                            Добавить фото {addedImages + " / " + 5}
                         </UI.File>
 
                         <div className="file_img_wrapper">
                             {this.props.addProduct.arrImagesLoad? (
                                 this.props.addProduct.arrImagesLoad.map((e, i) => {
                                     if(e.image === null) {
-                                        return (
-                                            <div key={i} className="img_wrap">
-                                                <div className="icon_wrap">
-                                                    <Icon32Camera />
-                                                </div>
-                                            </div>
-                                        )
+                                        return null;
                                     }
                                     return (
                                         <div key={i} className="img_wrap">
@@ -831,6 +899,12 @@ function mapDispatchToProps(dispatch) {
         },
         gdsUpdate: function (name) {
             dispatch(gdsActions.gdsUpdate(name))
+        },
+        gdsUserIdSet: function (name) {
+            dispatch(gdsUserIdActions.gdsUserIdSet(name))
+        },
+        gdsFavoritesSet: function (name) {
+            dispatch(gdsFavoritesActions.gdsFavoritesSet(name))
         }
     }
 }

@@ -77,7 +77,7 @@ class All extends Component {
         this.state.gds.map((e, i) => {
             let image = "";
             if(e['images'] !== "") {
-                image = e["images"].split(",")[0];
+                image = e["images"].split(",")[e['image_preview']];
 
                 image = window.location.protocol + "//" + window.location.hostname +
                     "/sys/files/gds/" + image;
@@ -130,9 +130,6 @@ class All extends Component {
                 </UI.PanelHeader>
 
                 <UI.Group>
-                    <UI.Header level="2">
-                        АРХИВНЫЕ
-                    </UI.Header>
                     <UI.List className="new_gds">
                         <InfiniteScroll
                             dataLength={items.length}
